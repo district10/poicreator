@@ -22,3 +22,10 @@ C:
         |   |   |   |
   (0,0) +---+---+---+--> x
 ```
+
+
+### [Image Processing](https://zybuluo.com/gnat-xj/note/92390)
+
+```
+http://gnat.qiniudn.com/pano/01.jpg?imageView2/2/h/200
+```
