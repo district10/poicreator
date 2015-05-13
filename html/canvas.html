@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<head>
+    <title>Canvas Render</title>
+    <style>
+        #target {
+            border: 1px solid red;
+            width: 400px;
+            height: 200px;
+            align: center;
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+    <div id="target"></div>
+
+    <script src='/js/three.min.js'></script>
+    <script src='/js/OrbitControls.js'></script>
+    <script src='/js/canvas.torus.js'></script>
+    <script>
+        var canvas = document.getElementById('target');
+        renderCanvas(canvas);
+    </script>
+</body>

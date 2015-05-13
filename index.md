@@ -1,7 +1,8 @@
 ## Demos
 
-* [boilerplate.html](html/boilerplate.html)
 * [camera.html](html/camera.html)
+* [canvas.html](html/canvas.html)
 * [draggable.html](html/draggable.html)
-* [drawcalls.html](html/drawcalls.html)
-* [multi.html](html/multi.html)
+* [nodes.html](html/nodes.html)
+* [panorama.html](html/panorama.html)
+* [site.html](html/site.html)
