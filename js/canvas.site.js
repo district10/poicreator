@@ -1,9 +1,8 @@
 function renderSite(canvas, json) {	
     // canvas: the output canvas DOM element
     // json  : the configuration json object
-
     var renderer = new THREE.WebGLRenderer({ antialias : true });
-//    renderer.setClearColor(new THREE.Color('lightgrey'), 1); //    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setClearColor(new THREE.Color('lightgrey'), 1);
     renderer.setSize( canvas.clientWidth, canvas.clientHeight );
     canvas.appendChild( renderer.domElement );
 
@@ -11,74 +10,51 @@ function renderSite(canvas, json) {
     var onRenderFcts= [];
 
     // init scene and camera
-    var scene   = new THREE.Scene();
-    var camera	= new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.01, 20);
-    camera.position = new THREE.Vector3( 0, 0, 0 );
-    camera.target = new THREE.Vector3( 1, 1, 1 );
+    var scene	= new THREE.Scene();
+    var camera	= new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.01, 1000);
+    camera.position.z = 400;
+    camera.target = new THREE.Vector3( 1, 0, 0 );
 
-//    var controls = new THREE.OrbitControls(camera);
+    var controls = new THREE.OrbitControls(camera, canvas);
+    controls.rotateSpeed = -1;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
 
-    // mesh
-    var geometry = new THREE.SphereGeometry( 1, 60, 40 );
-    var material = new THREE.MeshBasicMaterial( {
-        map: THREE.ImageUtils.loadTexture( '/img/01.jpg' )
-    } );
+    controls.noZoom = true;
+    controls.noPan = true;
+    controls.autorotate = true;
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+/*
+    var geometry = new THREE.BoxGeometry( 200, 200, 200 );
+    var texture = THREE.ImageUtils.loadTexture( '/img/crate.gif' );
+    texture.anisotropy = renderer.getMaxAnisotropy();
+    var material = new THREE.MeshBasicMaterial( { map: texture } );
+*/
+/*
+*/
+    var geometry = new THREE.SphereGeometry( 500, 60, 40 );
+    geometry.applyMatrix( new THREE.Matrix4().makeScale( -1, 1, 1 ) );
+    console.log(json);
+    var texture = THREE.ImageUtils.loadTexture( json.img );
+    var material = new THREE.MeshBasicMaterial( { map: texture } );
+
+                
     var mesh = new THREE.Mesh( geometry, material );
     scene.add( mesh );
 
-     // render the scene
-    onRenderFcts.push(function(){
-        renderer.render( scene, camera );		
-    });
-
-
-/*    
+    // handle window resize
     canvas.addEventListener('resize', function(){
         renderer.setSize( canvas.clientWidth, canvas.clientHeight );
         camera.aspect	= canvas.clientWidth / canvas.clientHeight;
         camera.updateProjectionMatrix();		
     }, false);
 
-    canvas.addEventListener( 'mousedown', function(event){
-        event.preventDefault();
-        isUserInteracting = true;
-        onPointerDownPointerX = event.clientX;
-        onPointerDownPointerY = event.clientY;
-        onPointerDownLon = lon;
-        onPointerDownLat = lat;
-    }, false );
+    // render the scene
+    onRenderFcts.push(function(){
+        renderer.render( scene, camera );		
+    });
 
-    canvas.addEventListener( 'mousemove', function(event){
-        if ( isUserInteracting === true ) {
-            lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
-            lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
-        }
-    }, false );
-
-    canvas.addEventListener( 'mouseup', function(event){
-        isUserInteracting = false;
-    }, false );
-*/
-/*    
-    function animate() {
-        requestAnimationFrame( animate );
-
-        if ( isUserInteracting === false ) {
-            lon += 0.1;
-        }
-        lat = Math.max( - 85, Math.min( 85, lat ) );
-        phi = THREE.Math.degToRad( 90 - lat );
-        theta = THREE.Math.degToRad( lon );
-        camera.target.x = 500 * Math.sin( phi ) * Math.cos( theta );
-        camera.target.y = 500 * Math.cos( phi );
-        camera.target.z = 500 * Math.sin( phi ) * Math.sin( theta );
-        camera.lookAt( camera.target );
-
-        // distortion camera.position.copy( camera.target ).negate();
-        renderer.render( scene, camera );
-      }
-      animate();
-*/
     // run the rendering loop
     var lastTimeMsec= null;
     requestAnimationFrame(function animate(nowMsec){

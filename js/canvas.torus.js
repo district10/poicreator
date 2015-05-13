@@ -14,7 +14,7 @@ function renderCanvas(canvas) {
     var scene	= new THREE.Scene();
     var camera	= new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.01, 1000);
     camera.position.z = 2;
-    var controls	= new THREE.OrbitControls(camera);
+    var controls	= new THREE.OrbitControls(camera, canvas);
 
     //////////////////////////////////////////////////////////////////////////////////
     //		add an object in the scene
