@@ -2,13 +2,24 @@
 
 Create POIs
 
-A:
+```
+img
+├── 01.jpg
+├── 21.jpg
+└── 22.jpg
+```
+
+
+A(01.jpg):
+
     ![](http://gnat.qiniudn.com/pano/01.jpg?imageView2/2/h/200)
 
-B:
+B(21.jpg):
+
     ![](http://gnat.qiniudn.com/pano/21.jpg?imageView2/2/h/200)
 
-C:
+C(22.jpg):
+
     ![](http://gnat.qiniudn.com/pano/22.jpg?imageView2/2/h/200)
 
 ```

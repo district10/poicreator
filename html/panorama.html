@@ -65,7 +65,8 @@
 				geometry.applyMatrix( new THREE.Matrix4().makeScale( -1, 1, 1 ) );
 
 				var material = new THREE.MeshBasicMaterial( {
-					map: THREE.ImageUtils.loadTexture( '' )
+					map: THREE.ImageUtils.loadTexture( '/img/01.jpg' )
+					// map: THREE.ImageUtils.loadTexture( 'http://gnat.qiniudn.com/pano/01.jpg?imageView2/2/h/400' )
 				} );
 
 				mesh = new THREE.Mesh( geometry, material );

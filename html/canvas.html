@@ -2,23 +2,35 @@
 <head>
     <title>Canvas Render</title>
     <style>
-        #target {
+        #canvases {
+        }
+        #target1 {
             border: 1px solid red;
             width: 400px;
-            height: 200px;
-            align: center;
+            height: 300px;
+            clear: both;
+        }
+        #target2 {
+            border: 1px solid red;
+            width: 400px;
+            height: 300px;
             clear: both;
         }
     </style>
 </head>
 <body>
-    <div id="target"></div>
+    <div id="canvases">
+        <div id="target1"></div>
+        <div id="target2"></div>
+    </div>
 
     <script src='/js/three.min.js'></script>
     <script src='/js/OrbitControls.js'></script>
     <script src='/js/canvas.torus.js'></script>
     <script>
-        var canvas = document.getElementById('target');
-        renderCanvas(canvas);
+        var canvas1 = document.getElementById('target1');
+        var canvas2 = document.getElementById('target2');
+        renderCanvas(canvas1);
+        renderCanvas(canvas2);
     </script>
 </body>
