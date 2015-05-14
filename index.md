@@ -4,6 +4,6 @@
 * [canvas.html](html/canvas.html)
 * [draggable.html](html/draggable.html)
 * [nodes.html](html/nodes.html)
-* [pano.html](html/pano.html)
+* [pano-custom.html](html/pano-custom.html)
+* [pano-orbitcontrol.html](html/pano-orbitcontrol.html)
 * [panorama.html](html/panorama.html)
-* [site.html](html/site.html)

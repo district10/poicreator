@@ -15,11 +15,9 @@
 	</head>
 	<body>
 
-		<script src="/js/three.min.js"></script>
-
-		<script src="/js/TrackballControls.js"></script>
-
-		<script src="/js/stats.min.js"></script>
+		<script src="/js/bundle/three.min.js"></script>
+		<script src="/js/bundle/TrackballControls.js"></script>
+		<script src="/js/bundle/stats.min.js"></script>
 
 		<script>
 
@@ -155,7 +153,7 @@
 
 				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
+                console.log({x: mouse.x, y: mouse.y});
 				//
 
 				raycaster.setFromCamera( mouse, camera );

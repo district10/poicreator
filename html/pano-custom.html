@@ -11,7 +11,6 @@
             border: 1px solid red;
             width: 400px;
             height: 300px;
-            clear: both;
         }
     </style>
 </head>
@@ -24,25 +23,20 @@
 <!--
     <script src='/js/TrackballControls.js'></script>
 -->
-    <script src='/js/three.min.js'></script>
+    <script src='/js/bundle/three.min.js'></script>
     <script src='/js/canvas.pano.js'></script>
     <script>
-        var canvas1 = document.getElementById('target1');
-        var canvas2 = document.getElementById('target2');
-        var json = {
-            url: "http://gnat.qiniudn.com/pano/01.jpg?imageView2/2/h/400",
-            img: "/img/01.jpg"
+        var site = function () {
+            return { img: "/img/01.jpg", lon: Math.random(), lat: Math.random() };
         }
-        
-        // renderSite(canvas1, json);
-        // renderSite(canvas2, json);
-
+        var pois = [];
         function addSite() {
+            var poi = {};
+            pois.push(poi);
             var ol = document.getElementById('home');
             var canvas = document.createElement('li');
-            var site = { url: "", img: "/img/01.jpg" };
             ol.appendChild(canvas);
-            renderSite(canvas, site);
+            renderSite(canvas, site(), poi);
         }
     </script>
 </body>
