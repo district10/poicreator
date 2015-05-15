@@ -3,24 +3,56 @@ function renderSite(canvas, site, poi) {
     // site  : the configuration site object
     // poi   : the poi output
 
+    modes = [
+        { color: "#007cdc", mode: "pano", title: "", info: "#007cdc" },
+        { color: "#887ddd", mode: "rotateLR", info: "#887ddd" },
+        { color: "#ff5675", mode: "rotateUD", info: "#ff5675" },
+        { color: "#ff8345", mode: "rotateFree", info: "#ff8345" },
+        { color: "#8cc540", mode: "rotateDummy", title: "", info: "get away!" },
+        { color: "#009f5d", mode: "drag", title: "", info: "#009f5d" }
+//        { color: "#d1d2d4", mode: "MODE 7: .........", info: "#d1d2d4"}
+    ];
+    var mode = 0;
+    
     canvas.style.position = 'relative';
-
+    
+    var banner = document.createElement('div');
+    banner.style.cssText = "";
+    banner.style.cssText += "";
+    banner.style.cssText += "top: 1px; width: 100%; height: 10%; opacity: 0.8;";
+    banner.style.cssText += "text-align: center;";
+    banner.style.cssText += 'font-family: "Glyphicons Halflings", "Doulos SIL","Charis SIL", "Gentium", "TITUS Cyberbit Basic", "Arial Unicode MS", serif';
+    banner.style.cssText += 'font-weight: bold';
+    banner.style.cssText += "color: #ffffff;";
+    banner.style.cssText += "background-color: rgba(0,0,0,0.5);";
+    banner.style.cssText += "position: absolute";
+    banner.style.cursor = "pointer";
+    banner.innerText = "MODE";
+//    $(banner).fitText(1.2, { minFontSize: '6px', maxFontSize: '20px' });
+    
+    canvas.appendChild(banner);
+    
     var loc = document.createElement('div');
-    loc.style.border = '1px solid red';
+//    loc.style.border = '1px solid red';
     loc.style.position = "absolute";
     loc.style.bottom = "1px";
     loc.style.right = "1px";
-    loc.style.cursor = "pointer";
-    loc.style.pointerEvents = "auto";
-    loc.style.opacity = "0.5";
+    loc.style.textAlign = "right";
+    loc.style.opacity = "0.8";
     loc.style.width = "32px";
     loc.style.height = "32px";
     loc.tag = 'hidden';
-    
-//    canvas.style.cursor = 'move';
-    
     canvas.appendChild(loc);
-    
+
+    banner.onclick = function() {
+        mode = ++mode%modes.length;
+        loc.style.background = modes[mode].color;
+        banner.style.background = modes[mode].color;
+        banner.innerHTML = modes[mode].mode;
+        banner.title = modes[mode].info;
+    };
+    banner.onclick();
+
     poi.ref = site.img;
     poi.value = Math.random();
     
@@ -31,7 +63,7 @@ function renderSite(canvas, site, poi) {
         lat = 0, onMouseDownLat = 0,
         phi = 0, theta = 0;
 
-    var dragable = true;
+    var onMode = true;
     var objects = [], plane;
     var mouse = new THREE.Vector3();
     var raycaster = new THREE.Raycaster();
@@ -58,30 +90,20 @@ function renderSite(canvas, site, poi) {
     var mesh = new THREE.Mesh( geometry, material );
     scene.add( mesh );
     
-    var geo = new THREE.SphereGeometry( 40, 60, 40);
-    var mat = new THREE.MeshLambertMaterial( { color: Math.random()*0xffffff } ) ;
+    var geo = new THREE.SphereGeometry( 10, 60, 40);
     for ( var i = 0; i < 40; i ++ ) {
+        var mat = new THREE.MeshLambertMaterial( { color: Math.random()*0xffffff } ) ;
         var object = new THREE.Mesh(geo, mat);
-        var t = THREE.Math.degToRad( Math.random()*360 );
-        var p = THREE.Math.degToRad( 90 - Math.random()*90 );
-        object.position.x = 500 * Math.sin( p ) * Math.cos( t );
-        object.position.y = 500 * Math.cos( p );
-        object.position.z = 500 * Math.sin( p ) * Math.sin( t );
-        object.info = { num: Math.random(), msg: "cvrs" };
+        var t = THREE.Math.degToRad( Math.random()*360 );     //  0 - 360
+        var p = THREE.Math.degToRad( 80 + Math.random()*20 ); // 80 - 100
+        object.position.x = 400 * Math.sin( p ) * Math.cos( t );
+        object.position.y = 400 * Math.cos( p );
+        object.position.z = 400 * Math.sin( p ) * Math.sin( t );
         objects.push(object);
         scene.add( object );
     }
 
-    var light = new THREE.PointLight( 0xffffff, 2, 50 );
-    light.add( new THREE.Mesh( 
-                              new THREE.SphereGeometry( 4, 60, 40),
-                              new THREE.MeshBasicMaterial({ color: 0x0040ff })
-                             ));
-    lon = 0;
-    lot = 0;
-    light.position.x = 500;
-    light.position.y = 0;
-    light.position.z = 0;
+    var light = new THREE.AmbientLight( 0xffffff );
     scene.add( light );
 
     // listeners
@@ -108,20 +130,28 @@ function renderSite(canvas, site, poi) {
         mouse.y = 1 - ( event.clientY - canvas.offsetTop ) / canvas.clientHeight * 2;   //  --------+---------->
                                                                                         //  (-1,-1) | ( 1,-1) 
                                                                                         //          |  
-        if (dragable) {
+        if (onMode) {
             raycaster.setFromCamera( mouse, camera );
-            if ( SELECTED ) {
-                // move
-                return;
-            }
-			intersects = raycaster.intersectObjects( objects );
+            intersects = raycaster.intersectObjects( objects );
             if ( intersects.length > 0 ) {
                 if ( INTERSECTED != intersects[ 0 ].object ) {
                     INTERSECTED = intersects[ 0 ].object;
-                    console.log(INTERSECTED.info || "no info");
+                    if (modes[mode].mode === 'rotateDummy') {
+                        modeRotateDummy(INTERSECTED);
+                    } else if (modes[mode].mode === 'drag') {
+                        modeDrag(INTERSECTED);
+                    } else if (modes[mode].mode === 'rotateLR') {
+                        modeRotateLR(INTERSECTED);
+                    } else if (modes[mode].mode === 'rotateUD') {
+                        modeRotateUD(INTERSECTED);
+                    } else if (modes[mode].mode === 'rotateFree') {
+                        modeRotateFree(INTERSECTED, Math.random()* 0.2 - 0.1, Math.random()*0.2-0.1);
+                    } else {
+                        console.log('mode? what');
+                    }
+                } else {
+                    INTERSECTED = null;
                 }
-            } else {
-                INTERSECTED = null;
             }
         }
 
@@ -134,6 +164,7 @@ function renderSite(canvas, site, poi) {
     canvas.addEventListener( 'mousedown', function(event){
 
         if (!inScope) { return; }
+
         event.preventDefault();
         isUserInteracting = true;
         onPointerDownPointerX = event.clientX;
@@ -141,7 +172,7 @@ function renderSite(canvas, site, poi) {
         onPointerDownLon = lon;
         onPointerDownLat = lat;
         
-        if (dragable) {
+        if (onMode) {
         }
 
     }, false );
@@ -150,8 +181,7 @@ function renderSite(canvas, site, poi) {
         if (!inScope) { return; }
         isUserInteracting = false;
 
-        if (dragable) {
-
+        if (onMode) {
         }
     }, false );
 
@@ -197,7 +227,7 @@ function renderSite(canvas, site, poi) {
     });
 
     onRenderFcts.push(function(){
-        loc.innerHTML = JSON.stringify({lon: lon, lat: lat});
+        loc.innerHTML = lon.toFixed(0) + '<br />' + lat.toFixed(0);
     });
 
     // render the scene
@@ -219,4 +249,60 @@ function renderSite(canvas, site, poi) {
             onRenderFct(deltaMsec/1000, nowMsec/1000);
         });
     });
+}
+
+// get away
+function modeRotateDummy (POI) {
+    var pos0 = {
+        x: POI.position.x,
+        y: POI.position.y,
+        z: POI.position.z
+    };
+    var pos1 = xyz2rtp(
+        POI.position.x,
+        POI.position.y,
+        POI.position.z
+    );
+    pos1.theta += Math.random()*0.2 - 0.1;
+    pos1.phi   += Math.random()*0.2 - 0.1;
+    var pos2 = rtp2xyz(pos1.radius, pos1.theta, pos1.phi);
+    POI.position.x = pos2.x;
+    POI.position.y = pos2.y;
+    POI.position.z = pos2.z;
+/*
+    console.log({
+        dx: pos2.x - pos0.x, 
+        dy: pos2.y - pos0.y, 
+        dz: pos2.z - pos0.z, 
+    });
+*/    
+}
+
+function modeRotateLR (POI) {
+    var axis = new THREE.Vector3( 0, 1, 0 );
+    var angle = Math.PI / 20;
+    POI.position.applyAxisAngle( axis, angle );
+}
+
+function modeRotateUD (POI) {
+    var z = POI.position.z;
+    var x = POI.position.x;
+    var r = Math.sqrt(x*x + z*z);
+    var axis = new THREE.Vector3(-z/r, 0, x/r);
+    var angle = Math.PI / 20;
+    POI.position.applyAxisAngle( axis, angle );
+}
+
+function modeRotateFree (POI, lon, lat) {
+    var lr = new THREE.Vector3( 0, 1, 0 );
+    POI.position.applyAxisAngle( lr, lon );
+
+    var z = POI.position.z;
+    var x = POI.position.x;
+    var r = Math.sqrt(x*x + z*z);
+    var ud = new THREE.Vector3(-z/r, 0, x/r);
+    POI.position.applyAxisAngle( ud, lat );
+}
+
+function modeDrag (POI) {
 }

@@ -3,20 +3,22 @@
     <title>Canvas Render</title>
     <style>
         body {
-            background-color: #00ff00;
+            background-color: rgba(0, 0, 0, 0.5);
             margin: 0px;
             overflow: hidden;
         }
-        li {
-            border: 1px solid red;
+        #sites {
+        }
+        .site {
             width: 400px;
             height: 300px;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
-    <ol id="home">
-    </ol>
+    <div id="sites">
+    </div>
 
 <input type="button" value="Add One Scene" onclick="addSite();" />
 
@@ -25,19 +27,25 @@
     <script src='/js/bundle/Projector.js'></script>
 -->
     <script src='/js/bundle/three.min.js'></script>
+    <script src='http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js'></script>
+
+    <script src='/js/bundle/tween.min.js'></script>
+    <script src='/js/bundle/jquery.fittext.js'></script>
     <script src='/js/canvas.pano.js'></script>
+    <script src='/js/utils.js'></script>
     <script>
-        var site = function () {
+        var siteinfo = function () {
             return { img: "/img/01.jpg", lon: Math.random(), lat: Math.random() };
         }
         var pois = [];
         function addSite() {
             var poi = {};
             pois.push(poi);
-            var ol = document.getElementById('home');
-            var canvas = document.createElement('li');
-            ol.appendChild(canvas);
-            renderSite(canvas, site(), poi);
+            var sites = document.getElementById('sites');
+            var site = document.createElement('div');
+            site.className = "site";
+            sites.appendChild(site);
+            renderSite(site, siteinfo(), poi);
         }
     </script>
 </body>
