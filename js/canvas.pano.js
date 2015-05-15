@@ -10,7 +10,7 @@ function renderSite(canvas, site, poi) {
     loc.style.position = "absolute";
     loc.style.bottom = "1px";
     loc.style.right = "1px";
-//    loc.style.cursor = "pointer";
+    loc.style.cursor = "pointer";
     loc.style.pointerEvents = "auto";
     loc.style.opacity = "0.5";
     loc.style.width = "32px";
@@ -31,12 +31,12 @@ function renderSite(canvas, site, poi) {
         lat = 0, onMouseDownLat = 0,
         phi = 0, theta = 0;
 
-    var dragable = false;
+    var dragable = true;
     var objects = [], plane;
+    var mouse = new THREE.Vector3();
     var raycaster = new THREE.Raycaster();
-    var mouse = new THREE.Vector2(),
-        offset = new THREE.Vector3(),
-        INTERSECTED, SELECTED;
+    var offset = new THREE.Vector3();
+    var INTERSECTED, SELECTED;
 
     var renderer = new THREE.WebGLRenderer({ antialias : true });
     renderer.setClearColor(new THREE.Color('lightgrey'), 1);
@@ -59,14 +59,15 @@ function renderSite(canvas, site, poi) {
     scene.add( mesh );
     
     var geo = new THREE.SphereGeometry( 40, 60, 40);
+    var mat = new THREE.MeshLambertMaterial( { color: Math.random()*0xffffff } ) ;
     for ( var i = 0; i < 40; i ++ ) {
-        var object = new THREE.Mesh(geo,
-                                    new THREE.MeshLambertMaterial( { color: Math.random()*0xffffff } ) );
-        theta = THREE.Math.degToRad( Math.random()*360 );
-        phi = THREE.Math.degToRad( 90 - Math.random()*90 );
-        object.position.x = 500 * Math.sin( phi ) * Math.cos( theta );
-        object.position.y = 500 * Math.cos( phi );
-        object.position.z = 500 * Math.sin( phi ) * Math.sin( theta );
+        var object = new THREE.Mesh(geo, mat);
+        var t = THREE.Math.degToRad( Math.random()*360 );
+        var p = THREE.Math.degToRad( 90 - Math.random()*90 );
+        object.position.x = 500 * Math.sin( p ) * Math.cos( t );
+        object.position.y = 500 * Math.cos( p );
+        object.position.z = 500 * Math.sin( p ) * Math.sin( t );
+        object.info = { num: Math.random(), msg: "cvrs" };
         objects.push(object);
         scene.add( object );
     }
@@ -76,13 +77,11 @@ function renderSite(canvas, site, poi) {
                               new THREE.SphereGeometry( 4, 60, 40),
                               new THREE.MeshBasicMaterial({ color: 0x0040ff })
                              ));
-
     lon = 0;
     lot = 0;
     light.position.x = 500;
     light.position.y = 0;
     light.position.z = 0;
-
     scene.add( light );
 
     // listeners
@@ -102,6 +101,36 @@ function renderSite(canvas, site, poi) {
         isUserInteracting = false;
     }, false );
 
+    canvas.addEventListener( 'mousemove', function(event){
+        if (!inScope) { return; }                                                       //          ^  
+                                                                                        //          |  
+        mouse.x = ( event.clientX - canvas.offsetLeft ) / canvas.clientWidth * 2 - 1;   //  (-1, 1) | ( 1, 1) 
+        mouse.y = 1 - ( event.clientY - canvas.offsetTop ) / canvas.clientHeight * 2;   //  --------+---------->
+                                                                                        //  (-1,-1) | ( 1,-1) 
+                                                                                        //          |  
+        if (dragable) {
+            raycaster.setFromCamera( mouse, camera );
+            if ( SELECTED ) {
+                // move
+                return;
+            }
+			intersects = raycaster.intersectObjects( objects );
+            if ( intersects.length > 0 ) {
+                if ( INTERSECTED != intersects[ 0 ].object ) {
+                    INTERSECTED = intersects[ 0 ].object;
+                    console.log(INTERSECTED.info || "no info");
+                }
+            } else {
+                INTERSECTED = null;
+            }
+        }
+
+        if ( isUserInteracting === true ) {
+            lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
+            lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
+        }        
+    }, false );
+
     canvas.addEventListener( 'mousedown', function(event){
 
         if (!inScope) { return; }
@@ -113,44 +142,7 @@ function renderSite(canvas, site, poi) {
         onPointerDownLat = lat;
         
         if (dragable) {
-            var vector = new THREE.Vector3( mouse.x, mouse.y, 0.5 ).unproject( camera );
-            var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-            var intersects = raycaster.intersectObjects( objects );
-            if ( intersects.length > 0 ) {
-                isUserInteracting = false;
-                SELECTED = intersects[ 0 ].object;
-                var intersects = raycaster.intersectObject( plane );
-                offset.copy( intersects[ 0 ].point ).sub( plane.position );
-                canvas.style.cursor = 'move';
-            }
         }
-
-    }, false );
-
-    canvas.addEventListener( 'mousemove', function(event){
-        if (!inScope) { return; }
-        
-        /*
-         * mouse.x, mouse.y
-         *   
-         *        ^  
-         *        |  
-         *(-1, 1) | ( 1, 1) 
-         *--------+---------->
-         *(-1,-1) | ( 1,-1) 
-         *        |  
-         */
-
-        if (dragable) {
-            mouse.x = ( event.clientX - canvas.offsetLeft ) / canvas.clientWidth * 2 - 1;
-            mouse.y = - (( event.clientY - canvas.offsetTop ) / canvas.clientHeight * 2 - 1);
-            raycaster.setFromCamera( mouse, camera );
-        }
-
-        if ( isUserInteracting === true ) {
-            lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
-            lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
-        }        
 
     }, false );
 
@@ -159,11 +151,7 @@ function renderSite(canvas, site, poi) {
         isUserInteracting = false;
 
         if (dragable) {
-            if ( INTERSECTED ) {
-                plane.position.copy( INTERSECTED.position );
-                SELECTED = null;
-            }
-            canvas.style.cursor = 'auto';
+
         }
     }, false );
 
