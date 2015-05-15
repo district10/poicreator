@@ -9,8 +9,8 @@ function renderSite(canvas, site, poi) {
         { color: "#ff5675", mode: "rotateUD", info: "#ff5675" },
         { color: "#ff8345", mode: "rotateFree", info: "#ff8345" },
         { color: "#8cc540", mode: "rotateDummy", title: "", info: "get away!" },
-        { color: "#009f5d", mode: "drag", title: "", info: "#009f5d" }
-//        { color: "#d1d2d4", mode: "MODE 7: .........", info: "#d1d2d4"}
+        { color: "#009f5d", mode: "sprite", title: "", info: "#009f5d" },
+        { color: "#d1d2d4", mode: "MODE 7: .........", info: "#d1d2d4"}
     ];
     var mode = 0;
     
@@ -99,13 +99,32 @@ function renderSite(canvas, site, poi) {
         object.position.x = 400 * Math.sin( p ) * Math.cos( t );
         object.position.y = 400 * Math.cos( p );
         object.position.z = 400 * Math.sin( p ) * Math.sin( t );
-        object.info = i;
+        object.name = i;
         objects.push(object);
         scene.add( object );
     }
 
     var light = new THREE.AmbientLight( 0xffffff );
     scene.add( light );
+
+    // create a canvas element
+	var infoCanvas = document.createElement('canvas');
+	var infoContext = infoCanvas.getContext('2d');
+	infoContext.font = "Bold 20px Arial";
+	infoContext.fillStyle = "rgba(0,0,0,0.95)";
+    infoContext.fillText('Hello, world!', 0, 20);
+    
+	// canvas contents will be used for a texture
+	var infoTexture = new THREE.Texture(infoCanvas);
+	infoTexture.needsUpdate = true;
+
+//    var spriteMaterial = new THREE.SpriteMaterial( { map: texture1, useScreenCoordinates: true, alignment: THREE.SpriteAlignment.topLeft } );
+    var spriteMaterial = new THREE.SpriteMaterial( { map: infoTexture, useScreenCoordinates: true } );
+	
+	var sprite1 = new THREE.Sprite( spriteMaterial );
+	sprite1.scale.set(200,100,1.0);
+	sprite1.position.set( 40, 40, 0 );
+	scene.add( sprite1 );	
 
     // listeners
     canvas.addEventListener('resize', function(){
@@ -131,6 +150,9 @@ function renderSite(canvas, site, poi) {
         mouse.y = 1 - ( event.clientY - canvas.offsetTop ) / canvas.clientHeight * 2;   //  --------+---------->
                                                                                         //  (-1,-1) | ( 1,-1) 
                                                                                         //          |  
+        // update sprite position
+        sprite1.position.set( event.clientX, event.clientY - 20, 0 );
+	                                                                                       
         if (onMode) {
             raycaster.setFromCamera( mouse, camera );
             intersects = raycaster.intersectObjects( objects );
@@ -147,6 +169,8 @@ function renderSite(canvas, site, poi) {
                         modeRotateUD(INTERSECTED);
                     } else if (modes[mode].mode === 'rotateFree') {
                         modeRotateFree(INTERSECTED, Math.random()* 0.2 - 0.1, Math.random()*0.2-0.1);
+                    } else if (modes[mode].mode === 'sprite') {
+                        modeSprite(INTERSECTED);
                     } else {
                         console.log('mode? what');
                     }
@@ -306,4 +330,24 @@ function modeRotateFree (POI, lon, lat) {
 }
 
 function modeDrag (POI) {
+
+}
+
+function modeSprite (POI) {
+    if (true || POI.name) {
+        infoContext.clearRect(0,0,640,480);
+        var message = POI.name || Date.now();
+        var metrics = infoContext.measureText(message);
+        var width = metrics.width;
+        infoContext.fillStyle = "rgba(0,0,0,0.95)"; // black border
+        infoContext.fillRect( 0,0, width+8,20+8);
+        infoContext.fillStyle = "rgba(255,255,255,0.95)"; // white filler
+        infoContext.fillRect( 2,2, width+4,20+4 );
+        infoContext.fillStyle = "rgba(0,0,0,1)"; // text color
+        infoContext.fillText( message, 4,20 );
+        infoTexture.needsUpdate = true;
+    } else {
+        infoTexture.clearRect(0,0,300,300);
+        infoTexture.needsUpdate = true;
+    }
 }
