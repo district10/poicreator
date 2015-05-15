@@ -99,6 +99,7 @@ function renderSite(canvas, site, poi) {
         object.position.x = 400 * Math.sin( p ) * Math.cos( t );
         object.position.y = 400 * Math.cos( p );
         object.position.z = 400 * Math.sin( p ) * Math.sin( t );
+        object.info = i;
         objects.push(object);
         scene.add( object );
     }
