@@ -89,7 +89,11 @@ function renderSite(canvas, site, poi) {
     var material = new THREE.MeshBasicMaterial( { map: texture } );
     var mesh = new THREE.Mesh( geometry, material );
     scene.add( mesh );
-    
+
+    var spherefaces	= [];
+    spherefaces.push(mesh);
+    console.log('there are ' + spherefaces.length + ' faces');
+
     var geo = new THREE.SphereGeometry( 10, 60, 40);
     for ( var i = 0; i < 40; i ++ ) {
         var mat = new THREE.MeshLambertMaterial( { color: Math.random()*0xffffff } ) ;
@@ -107,24 +111,13 @@ function renderSite(canvas, site, poi) {
     var light = new THREE.AmbientLight( 0xffffff );
     scene.add( light );
 
-    // create a canvas element
-	var infoCanvas = document.createElement('canvas');
-	var infoContext = infoCanvas.getContext('2d');
-	infoContext.font = "Bold 20px Arial";
-	infoContext.fillStyle = "rgba(0,0,0,0.95)";
-    infoContext.fillText('Hello, world!', 0, 20);
-    
-	// canvas contents will be used for a texture
-	var infoTexture = new THREE.Texture(infoCanvas);
-	infoTexture.needsUpdate = true;
+    var spritey = makeTextSprite( " Hello, ", 
+                                 { fontsize: 24, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
+    spritey.position.set( 400,0,0);
+    scene.add( spritey );
 
-//    var spriteMaterial = new THREE.SpriteMaterial( { map: texture1, useScreenCoordinates: true, alignment: THREE.SpriteAlignment.topLeft } );
-    var spriteMaterial = new THREE.SpriteMaterial( { map: infoTexture, useScreenCoordinates: true } );
-	
-	var sprite1 = new THREE.Sprite( spriteMaterial );
-	sprite1.scale.set(200,100,1.0);
-	sprite1.position.set( 40, 40, 0 );
-	scene.add( sprite1 );	
+
+
 
     // listeners
     canvas.addEventListener('resize', function(){
@@ -151,32 +144,32 @@ function renderSite(canvas, site, poi) {
                                                                                         //  (-1,-1) | ( 1,-1) 
                                                                                         //          |  
         // update sprite position
-        sprite1.position.set( event.clientX, event.clientY - 20, 0 );
-	                                                                                       
+        
         if (onMode) {
             raycaster.setFromCamera( mouse, camera );
             intersects = raycaster.intersectObjects( objects );
             if ( intersects.length > 0 ) {
                 if ( INTERSECTED != intersects[ 0 ].object ) {
                     INTERSECTED = intersects[ 0 ].object;
-                    if (modes[mode].mode === 'rotateDummy') {
-                        modeRotateDummy(INTERSECTED);
-                    } else if (modes[mode].mode === 'drag') {
-                        modeDrag(INTERSECTED);
-                    } else if (modes[mode].mode === 'rotateLR') {
-                        modeRotateLR(INTERSECTED);
-                    } else if (modes[mode].mode === 'rotateUD') {
-                        modeRotateUD(INTERSECTED);
-                    } else if (modes[mode].mode === 'rotateFree') {
-                        modeRotateFree(INTERSECTED, Math.random()* 0.2 - 0.1, Math.random()*0.2-0.1);
-                    } else if (modes[mode].mode === 'sprite') {
-                        modeSprite(INTERSECTED);
-                    } else {
-                        console.log('mode? what');
-                    }
-                } else {
-                    INTERSECTED = null;
                 }
+                if (modes[mode].mode === 'rotateDummy') {
+                    modeRotateDummy(INTERSECTED);
+                } else if (modes[mode].mode === 'drag') {
+                    modeDrag(INTERSECTED);
+                } else if (modes[mode].mode === 'rotateLR') {
+                    modeRotateLR(INTERSECTED);
+                } else if (modes[mode].mode === 'rotateUD') {
+                    modeRotateUD(INTERSECTED);
+                } else if (modes[mode].mode === 'rotateFree') {
+                    modeRotateFree(INTERSECTED, Math.random()* 0.2 - 0.1, Math.random()*0.2-0.1);
+                } else if (modes[mode].mode === 'sprite') {
+                    modeSprite(INTERSECTED, infoContext, infoTexture);
+                } else {
+                    console.log('mode? what');
+                }
+
+            } else {
+                INTERSECTED = null;
             }
         }
 
@@ -255,6 +248,16 @@ function renderSite(canvas, site, poi) {
         loc.innerHTML = lon.toFixed(0) + '<br />' + lat.toFixed(0);
     });
 
+    
+    onRenderFcts.push(function(){
+        var t = THREE.Math.degToRad( lon );
+        var p = THREE.Math.degToRad( 90 - lat );
+        var x = 400 * Math.sin( p ) * Math.cos( t );
+        var y = 400 * Math.cos( p );
+        var z = 400 * Math.sin( p ) * Math.sin( t );
+        spritey.position.set(x, y, z);
+    });
+
     // render the scene
     onRenderFcts.push(function(){
         renderer.render( scene, camera );		
@@ -276,8 +279,10 @@ function renderSite(canvas, site, poi) {
     });
 }
 
+
 // get away
 function modeRotateDummy (POI) {
+
     var pos0 = {
         x: POI.position.x,
         y: POI.position.y,
@@ -294,31 +299,32 @@ function modeRotateDummy (POI) {
     POI.position.x = pos2.x;
     POI.position.y = pos2.y;
     POI.position.z = pos2.z;
-/*
-    console.log({
-        dx: pos2.x - pos0.x, 
-        dy: pos2.y - pos0.y, 
-        dz: pos2.z - pos0.z, 
-    });
-*/    
+
 }
 
+
 function modeRotateLR (POI) {
+
     var axis = new THREE.Vector3( 0, 1, 0 );
     var angle = Math.PI / 20;
     POI.position.applyAxisAngle( axis, angle );
+
 }
 
 function modeRotateUD (POI) {
+
     var z = POI.position.z;
     var x = POI.position.x;
     var r = Math.sqrt(x*x + z*z);
-    var axis = new THREE.Vector3(-z/r, 0, x/r);
+    var axis = new THREE.Vector3(-z/r, 0, x/r); // new THREE.Vector3(-z, 0, x).normalize()
     var angle = Math.PI / 20;
     POI.position.applyAxisAngle( axis, angle );
+
 }
 
+
 function modeRotateFree (POI, lon, lat) {
+
     var lr = new THREE.Vector3( 0, 1, 0 );
     POI.position.applyAxisAngle( lr, lon );
 
@@ -327,15 +333,21 @@ function modeRotateFree (POI, lon, lat) {
     var r = Math.sqrt(x*x + z*z);
     var ud = new THREE.Vector3(-z/r, 0, x/r);
     POI.position.applyAxisAngle( ud, lat );
+
 }
+
 
 function modeDrag (POI) {
 
 }
 
-function modeSprite (POI) {
+
+function modeSprite (POI, infoContext, infoTexture) {
+
     if (true || POI.name) {
+
         infoContext.clearRect(0,0,640,480);
+
         var message = POI.name || Date.now();
         var metrics = infoContext.measureText(message);
         var width = metrics.width;
@@ -345,9 +357,59 @@ function modeSprite (POI) {
         infoContext.fillRect( 2,2, width+4,20+4 );
         infoContext.fillStyle = "rgba(0,0,0,1)"; // text color
         infoContext.fillText( message, 4,20 );
+        
         infoTexture.needsUpdate = true;
+
     } else {
+
         infoTexture.clearRect(0,0,300,300);
         infoTexture.needsUpdate = true;
+
     }
+
+}
+
+
+function makeTextSprite( message, parameters )
+{
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    var fontsize = 18;
+    context.font = "Bold " + fontsize +  "px Arial";
+    var metrics = context.measureText( "hello world" );
+    var textWidth = metrics.width;
+
+    context.fillStyle   = "rgba(0, 0, 0, 1.0)";
+    context.strokeStyle = "rgba(0, 255, 0, 1.0)"; 
+    var borderThickness = 4;
+    context.lineWidth = borderThickness;
+    roundRect(context, borderThickness/2, borderThickness/2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
+    context.fillStyle = "rgba(0, 0, 0, 1.0)";
+    context.fillText( message, borderThickness, fontsize + borderThickness);
+
+    var texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+
+    var spriteMaterial = new THREE.SpriteMaterial( { map: texture, useScreenCoordinates: false } );
+    var sprite = new THREE.Sprite( spriteMaterial );
+    sprite.scale.set(100,50,1.0);
+    return sprite;	
+}
+
+
+function roundRect(ctx, x, y, w, h, r) 
+{
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r);
+    ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+    ctx.fill();
+	ctx.stroke();   
 }
