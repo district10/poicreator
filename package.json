@@ -1,0 +1,29 @@
+{
+  "name": "poicreator",
+  "version": "1.0.0",
+  "description": "Create POIs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/district10/poicreator.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/district10/poicreator/issues"
+  },
+  "homepage": "https://github.com/district10/poicreator",
+  "dependencies": {
+    "formidable": "^1.0.17",
+    "gridform": "^0.1.7",
+    "gridfs-stream": "^1.1.1",
+    "koa": "^0.21.0",
+    "koa-bodyparser": "^2.0.0",
+    "koa-router": "^5.0.1",
+    "koa-static": "^1.4.9",
+    "mongoose": "^4.0.4"
+  }
+}
