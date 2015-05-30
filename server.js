@@ -1,11 +1,13 @@
 var assert = require('assert');
 var fs = require("fs");
 var util = require('util');
+var zlib = require('zlib');
 var path = require("path");
 var fs = require('fs');
 var koa = require('koa');
 var serve = require('koa-static');
 var bodyParser = require("koa-bodyparser");
+var logger = require('koa-logger')
 var Router = require('koa-router');
 var router = Router();
 var gridform = require('gridform');
@@ -23,6 +25,7 @@ app.use(serve('./public'));
 
 //app.use(formidable);
 app.use(bodyParser());
+app.use(logger());
 
 // the pano img store
 var imgs;
@@ -56,7 +59,8 @@ app.use(api.routes());
 var img = new Router({ prefix: '/gridfs' });
 img.get('/:id', function *() {
     this.body = imgs.createReadStream({ filename: this.params.id });
-    this.body.pipe(this.res);
+    this.body.pipe(zlib.createGzip()).pipe(this.res);
+    // this.body.pipe(this.res);
 });
 app.use(img.routes());
 
