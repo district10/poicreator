@@ -1,0 +1,38 @@
+<head>
+    <style>
+    </style>
+</head>
+
+<body>
+	<div id='fs' style='height:600px;width:600px;border:1px solid green; display:inline-block'></div>
+	<div id='db' style='height:600px;width:600px;border:1px solid blue; display:inline-block'></div>
+	<script>
+// ny : 10x10
+// NY = [ny]s (60x60)
+var width = 60;
+var height = 60;
+var dx = 10;
+var dy = 10;
+
+var fs = document.getElementById('fs');
+var db = document.getElementById('db');
+for (var i = 0; i < height; i++) {
+	for (var j = 0; j < width; j++) {
+		var k1 = document.createElement('img');
+		var k2 = document.createElement('img');
+		k1.style.width = k2.style.width = dx + 'px';
+		k2.style.height = k2.style.height = dy + 'px';
+		k1.src = 'ny/ny-' + (i*width+j) + '.jpg';
+		k2.src = '/gridfs/ny-' + (i*width+j) + '.jpg';
+		k1.title = k1.src;
+		k2.title = k2.src;
+		fs.appendChild(k1);
+		db.appendChild(k2);	
+	}
+	var b1 = document.createElement('br');
+	var b2 = document.createElement('br');
+    fs.appendChild(b1);
+    db.appendChild(b2);
+}
+	</script>
+</body>

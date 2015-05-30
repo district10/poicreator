@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<head>
+    <title>Canvas Render</title>
+    <style>
+        body {
+            background-color: rgba(0, 0, 0, 0.5);
+            margin: 0px;
+            overflow: hidden;
+        }
+        #sites {
+        }
+        .site {
+            width: 512px;
+            height: 256px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div id="sites">
+    </div>
+
+<input type="button" value="Add One Scene" onclick="addSite();" />
+
+<!--
+    <script src='/js/TrackballControls.js'></script>
+    <script src='/js/bundle/Projector.js'></script>
+-->
+    <script src='/js/bundle/three.min.js'></script>
+    <script src='/js/bundle/jquery.min.js'></script>
+
+    <script src='/js/bundle/tween.min.js'></script>
+    <script src='/js/bundle/jquery.fittext.js'></script>
+    <script src='/js/gridfs.js'></script>
+    <script src='/js/utils.js'></script>
+    <script>
+        function addSite() {
+            var sites = document.getElementById('sites');
+            var site = document.createElement('div');
+            site.className = "site";
+            sites.appendChild(site);
+            renderSiteGridFS(site);
+        }
+    </script>
+</body>
