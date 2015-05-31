@@ -99,9 +99,6 @@ function renderSiteGridFS(canvas) {
         if (lon > 360) { lon -= 360; }
         lat = Math.max( - 85, Math.min( 85, lat ) );
 
-        poi.lon = lon;
-        poi.lat = lat;
-
         // lon,lat (in degree) ==> theta,phi (in radian)
         theta = THREE.Math.degToRad( lon );
         phi = THREE.Math.degToRad( 90 - lat );
