@@ -57,6 +57,12 @@ app.use(api.routes());
 
 // serve pano img via ImgStore
 var img = new Router({ prefix: '/gridfs' });
+img.get('/', function *() {
+    imgs.files.find({}).toArray(function (err, files) {
+        console.log(files.length + new Date());
+    });
+    this.body = '/gridfs' + new Date();
+});
 img.get('/:id', function *() {
     this.body = imgs.createReadStream({ filename: this.params.id });
     this.body.pipe(zlib.createGzip()).pipe(this.res);
@@ -65,4 +71,4 @@ img.get('/:id', function *() {
 app.use(img.routes());
 
 // app switch on
-app.listen(8000);
+app.listen(8080);

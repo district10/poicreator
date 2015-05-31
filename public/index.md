@@ -9,6 +9,6 @@
 0. [html/pano-gridfs.html](html/pano-gridfs.html)
 0. [html/pano-orbitcontrol.html](html/pano-orbitcontrol.html)
 0. [html/panorama.html](html/panorama.html)
+0. [html/photowall-db-fs.html](html/photowall-db-fs.html)
 0. [html/photowall-db.html](html/photowall-db.html)
 0. [html/photowall-fs.html](html/photowall-fs.html)
-0. [html/wall.html](html/wall.html)

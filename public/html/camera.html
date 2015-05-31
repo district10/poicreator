@@ -254,12 +254,13 @@
 				activeHelper.visible = false;
                 // setViewport ( X0, Y0, dX, dY )
 				renderer.setViewport( 0, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT );
-				renderer.render( scene, activeCamera );
+				renderer.render( scene, camera );
 // 2
 				activeHelper.visible = true;
 
 				renderer.setViewport( SCREEN_WIDTH/2, 0, SCREEN_WIDTH/2, SCREEN_HEIGHT );
-				renderer.render( scene, camera );
+				// renderer.render( scene, camera );
+				renderer.render( scene, activeCamera );
 
 			}
 
