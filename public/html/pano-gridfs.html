@@ -10,8 +10,8 @@
         #sites {
         }
         .site {
-            width: 1200px;
-            height: 400px;
+            width: 800px;
+            height: 300px;
             display: inline-block;
             text-align: center; /* center horizontally */
             vertical-align: middle; /* center vertically */
@@ -19,13 +19,8 @@
     </style>
 </head>
 <body>
-    <div id="sites">
-    </div>
+    <div id="sites"></div>
 
-<!--
-    <script src='/js/TrackballControls.js'></script>
-    <script src='/js/bundle/Projector.js'></script>
--->
     <script src='/js/bundle/three.min.js'></script>
     <script src='/js/gridfs.js'></script>
     <script>
@@ -75,63 +70,64 @@ var config = {
 
 var img = 'libpano.jpg';
 
-        var sites = document.getElementById('sites');
-        var canvas = document.createElement('div');
-        canvas.className = "site";
-        sites.appendChild(canvas);
+var sites = document.getElementById('sites');
+var canvas = document.createElement('div');
+canvas.className = "site";
+sites.appendChild(canvas);
 
-        var WIDTH = canvas.clientWidth;
-        var HEIGHT = canvas.clientHeight;
+var WIDTH = canvas.clientWidth;
+var HEIGHT = canvas.clientHeight;
 
-        var inScope = false,
-        isUserInteracting = false,
-        onMouseDownMouseX = 0, onMouseDownMouseY = 0,
-        lon = 0, onMouseDownLon = 0,
-        lat = 0, onMouseDownLat = 0,
-        phi = 0, theta = 0;
+var inScope = false,
+    isUserInteracting = false,
+    onMouseDownMouseX = 0, onMouseDownMouseY = 0,
+    lon = 0, onMouseDownLon = 0,
+    lat = 0, onMouseDownLat = 0,
+    phi = 0, theta = 0;
 
-    canvas.style.position = 'relative';
-    var loc = document.createElement('div');
-    loc.style.position = "absolute";
-    loc.style.bottom = "1px";
-    loc.style.right = "1px";
-    loc.style.textAlign = "right";
-    loc.style.opacity = "0.8";
-    loc.style.width = "32px";
-    loc.style.height = "32px";
-    loc.tag = 'hidden';
-    canvas.appendChild(loc);
+canvas.style.position = 'relative';
+var loc = document.createElement('div');
+loc.style.position = "absolute";
+loc.style.bottom = "1px";
+loc.style.right = "1px";
+loc.style.textAlign = "right";
+loc.style.opacity = "0.8";
+loc.style.width = "32px";
+loc.style.height = "32px";
+loc.tag = 'hidden';
+canvas.appendChild(loc);
 
 var renderer = new THREE.WebGLRenderer({ antialias : true });
+renderer.setPixelRatio( window.devicePixelRatio );
 renderer.setClearColor(new THREE.Color('lightgrey'), 0.5);
-renderer.setSize( canvas.clientWidth, canvas.clientHeight );
+renderer.setSize( WIDTH, HEIGHT);
+// renderer.domElement.style.position = "relative";
+renderer.autoClear = false;
 canvas.appendChild( renderer.domElement );
 
 // init scene and camera
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(45, 0.5 * WIDTH/HEIGHT,  0.01, 2000);
 camera.target = new THREE.Vector3( 0, 0, 0 );
-//scene.add( new THREE.CameraHelper( camera ));
+var camHelper = new THREE.CameraHelper( camera );
+scene.add( camHelper );
 
-var outsider = new THREE.PerspectiveCamera(45, 0.5 * WIDTH/HEIGHT, 0.01, 2000);
-outsider.lookAt({x: 0, y: 0, z: 0});
-outsider.position.set(1000, 1000, 1000);
-// scene.add( new THREE.CameraHelper( outsider ));
+var outsider = new THREE.PerspectiveCamera(95, 0.5 * WIDTH/HEIGHT, 0.01, 1000000);
+outsider.lookAt(scene.position);
+outsider.position.set(0, 0, 2000);
 
 var mesh = [];
-mesh[0] =  new THREE.Mesh( new THREE.SphereGeometry( 1500,  6,  4 ), new THREE.MeshBasicMaterial( { color: 0x007cdc, wireframe: true } ) );
+//mesh[0] =  new THREE.Mesh( new THREE.SphereGeometry( 1500,  6,  4 ), new THREE.MeshBasicMaterial( { color: 0x007cdc, wireframe: true } ) );
 mesh[1] =  new THREE.Mesh( new THREE.SphereGeometry( 1400, 12,  8 ), new THREE.MeshBasicMaterial( { color: 0x887ddd, wireframe: true } ) );
-//var mesh2 =  new THREE.Mesh( new THREE.SphereGeometry( 1300, 32, 16 ), new THREE.MeshBasicMaterial( { color: 0xff5675, wireframe: true } ) );
-mesh[3] =  new THREE.Mesh( new THREE.SphereGeometry( 1200, 64, 32 ), new THREE.MeshBasicMaterial( { color: 0xff8345, wireframe: true } ) );
-//var mesh4 =  new THREE.Mesh( new THREE.SphereGeometry( 1100,128, 64 ), new THREE.MeshBasicMaterial( { color: 0x8cc540, wireframe: true } ) );
-//var mesh5 =  new THREE.Mesh( new THREE.SphereGeometry(  150,256,128 ), new THREE.MeshBasicMaterial( { color: 0x009f5d, wireframe: true } ) );
-
-scene.add(mesh[0]);
+//mesh[3] =  new THREE.Mesh( new THREE.SphereGeometry( 1200, 64, 32 ), new THREE.MeshBasicMaterial( { color: 0xff8345, wireframe: true } ) );
+//mesh[4] =  new THREE.Mesh( new THREE.SphereGeometry( 1100,128, 64 ), new THREE.MeshBasicMaterial( { color: 0x8cc540, wireframe: true } ) );
+//mesh[5] =  new THREE.Mesh( new THREE.SphereGeometry(  150,256,128 ), new THREE.MeshBasicMaterial( { color: 0x009f5d, wireframe: true } ) );
+//scene.add(mesh[0]);
 scene.add(mesh[1]);
-//scene.add(mesh2);
-scene.add(mesh[3]);
-//scene.add(mesh4);
-//scene.add(mesh5);
+//scene.add(mesh[2]);
+//scene.add(mesh[3]);
+//scene.add(mesh[4]);
+//scene.add(mesh[5]);
 
 // listeners
 canvas.addEventListener('resize', function(){
@@ -195,55 +191,53 @@ function onDocumentMouseWheel( event ) {
 canvas.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
 canvas.addEventListener( 'DOMMouseScroll', onDocumentMouseWheel, false);
 
-// array of functions for the rendering loop
-var onRenderFcts= [];
-
-// update the lon/lat
-onRenderFcts.push(function(){
-        if (lon <  0 ) { lon += 360; }
-        if (lon > 360) { lon -= 360; }
-        lat = Math.max( - 85, Math.min( 85, lat ) );
-        loc.innerHTML = lon.toFixed(0) + '<br />' + lat.toFixed(0);
-
-        var IJ = ij(lon, lat, 8, 4);
-        if (IJ.i !== i || IJ.j !==j ) {
-            i = IJ.i;
-            j = IJ.j;
-            console.log({i: i, j: j});
-        }
-
-        // lon,lat (in degree) ==> phi, theta (in radian)
-        phi = THREE.Math.degToRad( lon );
-        theta = THREE.Math.degToRad( 90 - lat );
-        camera.target.x = 500 * Math.sin( theta ) * Math.cos( phi );
-        camera.target.y = 500 * Math.cos( theta );
-        camera.target.z = 500 * Math.sin( theta ) * Math.sin( phi );
-        camera.lookAt( camera.target );
-        });
+animate();
 
 // render the scene
-onRenderFcts.push(function(){
+function animate() {
+    requestAnimationFrame( animate );
+    render();
+}
 
-        renderer.clear();
-        renderer.setViewport( 0, 0, WIDTH/2, HEIGHT/2 );
-        renderer.render( scene, camera );
+function render() {
 
-        renderer.setViewport( WIDTH/2, 0, WIDTH/2, HEIGHT/2 );
-        renderer.render( scene, camera );
-        });
+    if (lon <  0 ) { lon += 360; }
+    if (lon > 360) { lon -= 360; }
+    lat = Math.max( - 85, Math.min( 85, lat ) );
+    loc.innerHTML = lon.toFixed(0) + '<br />' + lat.toFixed(0);
 
-// run the rendering loop
-var lastTimeMsec= null;
-requestAnimationFrame(function animate(nowMsec){
-        requestAnimationFrame( animate );
-        // measure time
-        lastTimeMsec	= lastTimeMsec || nowMsec-1000/60;
-        var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec);
-        lastTimeMsec	= nowMsec;
-        // call each update function
-        onRenderFcts.forEach(function(onRenderFct){
-            onRenderFct(deltaMsec/1000, nowMsec/1000);
-            });
-        });
+    var IJ = ij(lon, lat, 8, 4);
+    if (IJ.i !== i || IJ.j !==j ) {
+        i = IJ.i;
+        j = IJ.j;
+        console.log({i: i, j: j});
+    }
+
+    // lon,lat (in degree) ==> phi, theta (in radian)
+    phi = THREE.Math.degToRad( lon );
+    theta = THREE.Math.degToRad( 90 - lat );
+    camera.target.x = 500 * Math.sin( theta ) * Math.cos( phi );
+    camera.target.y = 500 * Math.cos( theta );
+    camera.target.z = 500 * Math.sin( theta ) * Math.sin( phi );
+    camera.lookAt( camera.target );
+
+    renderer.clear();
+    camHelper.visible = true;
+    renderer.setViewport( 0, 0, WIDTH/2, HEIGHT );
+    renderer.render( scene, outsider );
+    camHelper.visible = false;
+    renderer.setViewport( WIDTH/2, 0, WIDTH/2, HEIGHT );
+    renderer.render( scene, camera );
+}
+
+var tasks = [];
+tasks.push(function() { patch(2, 8, 0, '/gridfs/libpano.jpg'); });
+tasks.push(function() { patch(2, 8, 1, '/gridfs/libpano.jpg'); });
+tasks.push(function() { patch(2, 8, 2, '/gridfs/libpano.jpg'); });
+tasks.push(function() { patch(2, 8, 3, '/gridfs/libpano.jpg'); });
+tasks.push(function() { patch(2, 8, 4, '/gridfs/libpano.jpg'); });
+
+// tasks.forEach( function(task){ task(); } );
+
     </script>
 </body>
