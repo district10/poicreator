@@ -157,7 +157,7 @@ function patch (level, i, j) {
     // var planegeo = new THREE.PlaneGeometry(100, 100, 1, 1);
     var pos = levelZWH(level);
     var planegeo = new THREE.PlaneBufferGeometry(pos.dw, pos.dh, 1, 1);
-    var planemat = new THREE.MeshBasicMaterial( { color: colors[level], opacity: 0.15, transparent: true } )
+    var planemat = new THREE.MeshBasicMaterial( { color: colors[level], opacity: 0.8/(level+1), transparent: true } )
     var plane = new THREE.Mesh( planegeo, planemat );
     plane.position.set(-pos.w+j*pos.dw + pos.dw/2, pos.h+i*pos.dh + pos.dw/2, pos.z);
     pyra.add(plane);
