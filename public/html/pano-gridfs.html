@@ -37,7 +37,7 @@ var config = {
 };
 
 // var colors = [ 0x007cdc, 0x887ddd, 0xff5675, 0xff8345, 0x8cc540, 0x009f5d, 0xd1d2d4 ];
-var colors = [ 0x007cdc, 0x887ddd, 0xff8345, 0x8cc540, 0x009f5d, 0xd1d2d4 ];
+var colors = [ 0x000000, 0x887ddd, 0x8cc540, 0xd1d2d4 ];
 
 var tiles = [];
 for (var i = 0; i < config.levels.length; i++) {
@@ -124,7 +124,6 @@ function showPatches(level) {
 
 function levelZWH(level) {
     var Z = pyramid.position.z - 200;
-    console.log(Z);
     var ct = tiles[level];
     var z = 1 / (level + 1) * Z;
     var h = Math.tan(THREE.Math.degToRad(pyramid.fov/2)) * z;
@@ -132,6 +131,15 @@ function levelZWH(level) {
     var dh = 2 * h / ct.hs;
     var dw = 2 * w / ct.ws;
     return {z: Z - z, dw: dw, dh: dh, w: w, h: h };
+/*
+    var ct = tiles[level];
+    var z = 1000 * (tiles.length - level);
+    var h = z;
+    var w = 2 * z;
+    var dh = 2 * h / ct.hs;
+    var dw = 2 * w / ct.ws;
+    return {z: z, dw: dw, dh: dh, w: w, h: h };
+*/    
 }
 
 function patch (level, i, j) {
@@ -192,34 +200,110 @@ function showCEO() {
 }
 
 function planlevel(level) {
-    if (level < 0) {
-        return;
-    }
+    if (level < 0) { return; }
     var IJ = ij(level);
-    ceo.push([level, IJ.i, IJ.j]);
-
-    var hsz = halfzonesize(level);
     var sz = zonesize(level);
-    var inside = false;
-    for (var i = 0; i < sz.dy; i++) {
-        for (var j = 0; j < sz.dx; j++) {
-            if (inside === false) {
-                if ( i > hsz.hdy && j > hsz.hdx ) {
-                    planlevel(level-1); 
-                    ceo.push([level, IJ.i + i, IJ.j + j]);
-                    ceo.push([level, IJ.i + i, IJ.j - j]);
-                    ceo.push([level, IJ.i - i, IJ.j + j]);
-                    ceo.push([level, IJ.i - i, IJ.j - j]);
-                }
-                inside = true;
-            } else {
-                ceo.push([level, IJ.i + i, IJ.j + j]);
-                ceo.push([level, IJ.i + i, IJ.j - j]);
-                ceo.push([level, IJ.i - i, IJ.j + j]);
-                ceo.push([level, IJ.i - i, IJ.j - j]);
-            }
+//  var hsz = halfzonesize(level);
+    /*
+     * 6 8 2 |
+     * 1 5 9 |===> *
+     * 7 3 4 |
+     */
+    ceo.push([level, IJ.i + 0, IJ.j - 1]); // 1
+    ceo.push([level, IJ.i - 1, IJ.j + 1]); // 2
+    ceo.push([level, IJ.i + 1, IJ.j + 0]); // 3
+    ceo.push([level, IJ.i + 1, IJ.j + 1]); // 4
+    ceo.push([level, IJ.i + 0, IJ.j + 0]); // 5
+    ceo.push([level, IJ.i - 1, IJ.j - 1]); // 6
+    ceo.push([level, IJ.i + 1, IJ.j - 1]); // 7
+    ceo.push([level, IJ.i - 1, IJ.j + 0]); // 8
+    ceo.push([level, IJ.i + 0, IJ.j + 1]); // 9
+    /*
+     * 4  3  8
+     * 7  * [1]
+     * 2  9  6
+     */
+    for (var j = 2; j < sz.dx; j++) {
+        ceo.push([level, IJ.i - 1, IJ.j + j]);
+        ceo.push([level, IJ.i + 0, IJ.j + j]);
+        ceo.push([level, IJ.i + 1, IJ.j + j]);
+    }
+    /*
+     * 4  3  8
+     * 7  *  1
+     *[2] 9  6
+     */
+    for (var i = 2; i < sz.dy; i++) {
+        for (var j = 2; j < sz.dx; j++) {
+            ceo.push([level, IJ.i + i, IJ.j - j]);
         }
     }
+    /*
+     * 4 [3] 8
+     * 7  *  1
+     * 2  9  6
+     */
+    for (var i = 2; i < sz.dx; i++) {
+        ceo.push([level, IJ.i - i, IJ.j - 1]);
+        ceo.push([level, IJ.i - i, IJ.j + 0]);
+        ceo.push([level, IJ.i - i, IJ.j + 1]);
+    }
+    /*
+     *[4] 3  8
+     * 7  *  1
+     * 2  9  6
+     */
+    for (var i = 2; i < sz.dy; i++) {
+        for (var j = 2; j < sz.dx; j++) {
+            ceo.push([level, IJ.i - i, IJ.j - j]);
+        }
+    }
+    /*
+     * 4  3  8 
+     * 7 [*] 1
+     * 2  9  6
+     */
+    /*
+     * 4  3  8 
+     * 7  *  1
+     * 2  9 [6]
+     */
+    for (var i = 2; i < sz.dy; i++) {
+        for (var j = 2; j < sz.dx; j++) {
+            ceo.push([level, IJ.i + i, IJ.j + j]);
+        }
+    }
+    /*
+     * 4  3  8
+     *[7] *  1 
+     * 2  9  6
+     */
+    for (var j = 2; j < sz.dx; j++) {
+        ceo.push([level, IJ.i - 1, IJ.j - j]);
+        ceo.push([level, IJ.i + 0, IJ.j - j]);
+        ceo.push([level, IJ.i + 1, IJ.j - j]);
+    }
+    /*
+     * 4  3 [8]
+     * 7  *  1
+     * 2  9  6
+     */
+    for (var i = 2; i < sz.dy; i++) {
+        for (var j = 2; j < sz.dx; j++) {
+            ceo.push([level, IJ.i - i, IJ.j + j]);
+        }
+    }
+    /*
+     * 4  3  8
+     * 7  *  1
+     * 2 [9] 6
+     */
+    for (var i = 2; i < sz.dx; i++) {
+        ceo.push([level, IJ.i + i, IJ.j - 1]);
+        ceo.push([level, IJ.i + i, IJ.j + 0]);
+        ceo.push([level, IJ.i + i, IJ.j + 1]);
+    }
+    planlevel(level-1); 
 }
 
 function process() {
@@ -270,7 +354,7 @@ var HEIGHT = canvas.clientHeight;
 var inScope = false,
     isUserInteracting = false,
     onMouseDownMouseX = 0, onMouseDownMouseY = 0,
-    lon = 0, onMouseDownLon = 0,
+    lon = 120, onMouseDownLon = 0,
     lat = 0, onMouseDownLat = 0,
     phi = 0, theta = 0;
 
@@ -298,9 +382,7 @@ canvas.appendChild( renderer.domElement );
 var scene = new THREE.Scene();
 var pyra = new THREE.Scene();
 
-lon = 34;
-
-var camera = new THREE.PerspectiveCamera(25, 0.6 * WIDTH/HEIGHT,  1, 10000);
+var camera = new THREE.PerspectiveCamera(15, 0.6 * WIDTH/HEIGHT,  1, 10000);
 camera.target = new THREE.Vector3( 0, 0, 0 );
 var camHelper = new THREE.CameraHelper( camera );
 scene.add( camHelper );
@@ -309,18 +391,27 @@ var outsider = new THREE.PerspectiveCamera(45, 0.8 * WIDTH/HEIGHT, 0.01, 1000000
 outsider.lookAt(scene.position);
 outsider.position.set(0, 0, 20000);
 
+/*
+var pyramid = new THREE.PerspectiveCamera(40, 0.8 * WIDTH/HEIGHT, 0.01, 1000000);
+pyramid.position.set(0, 100*tiles.length, 0);
+pyramid.lookAt( {x: 0, y: 0, z: 100*tiles.length} );
+
+var light = new THREE.AmbientLight( 0xffffff );
+light.position.set(pyramid.position);
+pyramid.add( light );
+*/
+
 var pyramid = new THREE.PerspectiveCamera(40, 0.8 * WIDTH/HEIGHT, 0.01, 1000000);
 pyramid.lookAt( {x: 0, y: 0, z: 0} );
 pyramid.position.set(0, 0, 1000+ 200);
 var light = new THREE.AmbientLight( 0xffffff );
 light.position.set(pyramid.position);
 pyramid.add( light );
-
 pyramid.rotation.x = Math.PI / 8;
 
-var mat1 = new THREE.MeshBasicMaterial( { color: 0x887ddd, wireframe: true } ); 
-var mat2 = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } ); 
-var mesh =  new THREE.Mesh( new THREE.SphereGeometry( 1400, 12,  8 ), mat1); 
+// 
+var mat = new THREE.MeshBasicMaterial( { color: 0x887ddd, wireframe: true } ); 
+var mesh =  new THREE.Mesh( new THREE.SphereGeometry( 1400, 12,  8 ), mat); 
 scene.add(mesh);
 
 // render the most vague sphere
