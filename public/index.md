@@ -6,6 +6,7 @@
 0. [html/gridfs.html](html/gridfs.html)
 0. [html/nodes.html](html/nodes.html)
 0. [html/pano-custom.html](html/pano-custom.html)
+0. [html/pano-frame.html](html/pano-frame.html)
 0. [html/pano-gridfs.html](html/pano-gridfs.html)
 0. [html/pano-orbitcontrol.html](html/pano-orbitcontrol.html)
 0. [html/panorama.html](html/panorama.html)

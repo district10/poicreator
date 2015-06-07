@@ -37,7 +37,8 @@ var config = {
 };
 
 // var colors = [ 0x007cdc, 0x887ddd, 0xff5675, 0xff8345, 0x8cc540, 0x009f5d, 0xd1d2d4 ];
-var colors = [ 0x000000, 0x887ddd, 0x8cc540, 0xd1d2d4 ];
+// var colors = [ 0x000000, 0x887ddd, 0x8cc540, 0xd1d2d4 ];
+var colors = [ 0x000000, 0xff0000, 0x888888, 0xffffff ];
 
 var tiles = [];
 for (var i = 0; i < config.levels.length; i++) {
@@ -165,7 +166,7 @@ function patch (level, i, j) {
     // var planegeo = new THREE.PlaneGeometry(100, 100, 1, 1);
     var pos = levelZWH(level);
     var planegeo = new THREE.PlaneBufferGeometry(pos.dw, pos.dh, 1, 1);
-    var planemat = new THREE.MeshBasicMaterial( { color: colors[level], opacity: 0.8/(level+1), transparent: true } )
+    var planemat = new THREE.MeshBasicMaterial( { color: colors[level], opacity: 1.0/(level+1), transparent: true } );
     var plane = new THREE.Mesh( planegeo, planemat );
     plane.position.set(-pos.w+j*pos.dw + pos.dw/2, pos.h+i*pos.dh + pos.dw/2, pos.z);
     pyra.add(plane);

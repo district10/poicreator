@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<head>
+    <title>Canvas Render</title>
+    <style>
+        body {
+            background-color: rgba(0, 0, 0, 0.5);
+            margin: 0px;
+            overflow: hidden;
+        }
+        #sites {
+        }
+        .site {
+            width: 400px;
+            height: 400px;
+            display: inline-block;
+            text-align: center; /* center horizontally */
+            vertical-align: middle; /* center vertically */
+        }
+    </style>
+</head>
+<body>
+    <div id="sites"></div>
+
+    <script src='/js/bundle/three.min.js'></script>
+    <script src='/js/gridfs.js'></script>
+    <script>
+var img = '/gridfs/panolib.jpg';
+var config = {
+    "mode": "default",
+    "src" : '/gridfs/panolib.jpg',
+    "levels": [
+        512,
+        128,
+        32,
+        8
+    ]
+};
+
+function patchGuru (hs, ws, i, j) {
+    var geometry = new THREE.SphereGeometry(
+            300, 1, 1,
+            j/ws * 2 *Math.PI,
+            Math.PI / ws * 2,
+            i/hs * Math.PI,
+            Math.PI / hs 
+            );
+    geometry.applyMatrix( new THREE.Matrix4().makeScale( -1, 1, 1 ) );
+    var material = new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( '/gridfs/' + (i*ws+j) + '.png' ), side: THREE.DoubleSide, opacity: 0.5, transparent: true });
+    var mat = new THREE.Mesh( geometry, material );
+//    mat.position.x += 500;
+    scene.add( mat );
+}
+
+function patchGuru2 (hs, ws, i, j) {
+    var geometry = new THREE.SphereGeometry(
+            300, 1, 1,
+            j/ws * 2 *Math.PI,
+            Math.PI / ws * 2,
+            i/hs * Math.PI,
+            Math.PI / hs 
+            );
+    var bitmap = document.createElement('canvas');
+    var g = bitmap.getContext('2d');
+    bitmap.width = 128;
+    bitmap.height = 128;
+    g.font = 'Bold 20px Arial';
+
+    var text = (i*ws+j);
+    g.fillStyle = 'white';
+    g.fillText(text, 0, 20);
+    g.strokeStyle = 'black';
+    g.strokeText(text, 0, 20);
+    var texture = new THREE.Texture(bitmap);
+    var material = new THREE.MeshBasicMaterial( { map: texture });
+    var mat = new THREE.Mesh( geometry, material );
+    scene.add( mat );
+}
+
+
+function patch(i, j) {
+    patchGuru(8, 16, i, j);
+}
+
+var sites = document.getElementById('sites');
+var canvas = document.createElement('div');
+canvas.className = "site";
+sites.appendChild(canvas);
+
+var WIDTH = canvas.clientWidth;
+var HEIGHT = canvas.clientHeight;
+
+var inScope = false,
+    isUserInteracting = false,
+    onMouseDownMouseX = 0, onMouseDownMouseY = 0,
+    lon = 120, onMouseDownLon = 0,
+    lat = 0, onMouseDownLat = 0,
+    phi = 0, theta = 0;
+
+var renderer = new THREE.WebGLRenderer({ antialias : true, alpha: true });
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setClearColor(new THREE.Color('lightgrey'), 0.5);
+renderer.setSize( WIDTH, HEIGHT);
+canvas.appendChild( renderer.domElement );
+
+// init scene and camera
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(45, WIDTH/HEIGHT,  1, 10000);
+camera.position.set({ x: 500, y: 0, z: 0 });
+// camera.target = new THREE.Vecter3(0, 0, 0);
+
+var mat = new THREE.MeshBasicMaterial( { color: 0x887ddd, wireframe: true } ); 
+var mesh =  new THREE.Mesh( new THREE.SphereGeometry( 300, 16,  8 ), mat); 
+scene.add(mesh);
+
+for ( var i = 0; i < 8; i++ ) {
+    for ( var j = 0; j < 16; j++ ) {
+        patch(i, j);
+        setTimeout(function(){}, 200);
+    }
+}
+
+// listeners
+canvas.addEventListener('resize', function(){
+        WIDTH = canvas.clientWidth;
+        HEIGHT = canvas.clientHeight;
+        renderer.setSize( WIDTH, HEIGHT );
+        camera.aspect	= 0.6 * WIDTH/HEIGHT;
+        camera.updateProjectionMatrix();		
+        outsider.aspect	= 0.8 * WIDTH/HEIGHT;
+        outsider.updateProjectionMatrix();		
+        }, false);
+
+canvas.addEventListener( 'mouseenter', function(event){
+        inScope = true;
+        isUserInteracting = false;
+        }, false );
+
+canvas.addEventListener( 'mouseleave', function(event){
+        inScope = false;
+        isUserInteracting = false;
+        }, false );
+
+canvas.addEventListener( 'mousemove', function(event){
+        if (!inScope) { return; }
+        if ( isUserInteracting === true ) {
+        lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
+        lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
+        }        
+        }, false );
+
+canvas.addEventListener( 'mousedown', function(event){
+        if (!inScope) { return; }
+        event.preventDefault();
+        isUserInteracting = true;
+        onPointerDownPointerX = event.clientX;
+        onPointerDownPointerY = event.clientY;
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+        }, false );
+
+canvas.addEventListener( 'mouseup', function(event){
+        if (!inScope) { return; }
+        isUserInteracting = false;
+        }, false );
+
+function onDocumentMouseWheel( event ) {
+    if (!inScope) { return; }
+    if ( event.wheelDeltaY ) {
+        camera.fov -= event.wheelDeltaY * 0.05;
+    } else if ( event.wheelDelta ) {
+        camera.fov -= event.wheelDelta * 0.05;
+    } else if ( event.detail ) {
+        camera.fov += event.detail * 1.0;
+    }
+    // narrowing
+    if (camera.fov <   5) { camera.fov =   5; }
+    if (camera.fov > 125) { camera.fov = 125; }
+    camera.updateProjectionMatrix();
+}
+
+canvas.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
+canvas.addEventListener( 'DOMMouseScroll', onDocumentMouseWheel, false);
+
+animate();
+
+// render the scene
+function animate() {
+    requestAnimationFrame( animate );
+    render();
+}
+
+function render() {
+
+    if (lon <  0 ) { lon += 360; }
+    if (lon > 360) { lon -= 360; }
+    lat = Math.max( - 85, Math.min( 85, lat ) );
+
+    // lon,lat (in degree) ==> phi, theta (in radian)
+    phi = THREE.Math.degToRad( lon );
+    theta = THREE.Math.degToRad( 90 - lat );
+    var x = camera.position.x + 500 * Math.sin( theta ) * Math.cos( phi );
+    var y = camera.position.y + 500 * Math.cos( theta );
+    var z = camera.position.z + 500 * Math.sin( theta ) * Math.sin( phi );
+    camera.lookAt({ x: x, y: y, z: z });
+    renderer.render( scene, camera );
+}
+
+    </script>
+</body>
