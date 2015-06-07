@@ -32,6 +32,8 @@ var imgs;
 var gform;
 
 // configure
+mongoose.connect('mongodb://localhost:27017/imgs');
+
 var panourl = 'mongodb://localhost:27017/imgs';
 var panoconn = mongoose.createConnection(panourl);
 panoconn.once('open', function () {
@@ -42,14 +44,20 @@ panoconn.once('open', function () {
     console.log('DB connected.');
 });
 
+// models & controllers
+require('/home/tzx/git/poicreator/src/models/guangxi.js');
+var sitegx = require('/home/tzx/git/poicreator/src/controllers/guangxi.js');
+
+
 // pack these routes
 var api = new Router({ prefix: '/api' });
 api.get('/', function*(){ this.body = 'CVRS Panorama APIs'; }); // /api/site/:id
 
 // route sites, floors, links, etc
 var sites = new Router();
-sites.get('/', function *(next) { this.body = 'all sites'; });
-sites.get('/:id', function *(next) { this.body = 'site#' + this.params.id; });
+sites.get('/', sitegx.getSitesAll );
+// sites.get('/:id', function *(next) { this.body = 'site#' + this.params.id; });
+sites.get('/:id', sitegx.getSiteById );
 api.get('/site/:id', sites.routes()); // /api/site/:id
 
 // use the API router
@@ -66,7 +74,6 @@ img.get('/', function *() {
 img.get('/:id', function *() {
     this.body = imgs.createReadStream({ filename: this.params.id });
     this.body.pipe(zlib.createGzip()).pipe(this.res);
-    // this.body.pipe(this.res);
 });
 app.use(img.routes());
 
