@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<head>
+    <title>Demo To Demonstrate How to Ease Out Transition Janks Between Scenes.</title>
+    <style>
+        body {
+            background-color: rgba(0, 0, 0, 0.5);
+            margin: 0px;
+            overflow: hidden;
+        }
+        #sites {
+        }
+        .site {
+            width: 1024px; height: 512px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div id="sites">
+    </div>
+    <script src='../js/bundle/three.min.js'></script>
+    <script src='../js/bundle/jquery.min.js'></script>
+    <script src='../js/bundle/tween.min.js'></script>
+    <script src='../js/bundle/jquery.fittext.js'></script>
+    <script src='../js/canvas.pano.js'></script>
+    <script src='../js/utils.js'></script>
+    <script>
+        var siteinfo = function () {
+            return {
+                img: "../img/01.jpg",
+                img1: "../img/21.jpg",
+                img2: "../img/22.jpg",
+                lon: Math.random(),
+                lat: Math.random()
+            };
+        }
+        var pois = [];
+        var poi = {};
+        pois.push(poi);
+        var sites = document.getElementById('sites');
+        var site = document.createElement('div');
+        site.className = "site";
+        sites.appendChild(site);
+        var x = renderSite( site, siteinfo(), poi );
+
+        x.scene.add( x.ig1 );
+        x.scene.add( x.ig2 );
+        x.ig1.material.opacity = x.ig2.material.opacity = 0.5;
+        $('body').keydown(function(e){
+            var code = e.which;
+            if( code== 38) {            // up
+                if( x.ig1.material.opacity <= 0.8 ) {
+                    x.ig1.material.opacity += 0.2;
+                    x.ig2.material.opacity -= 0.2;
+                }
+            } else if( code == 40 ) {   // down
+                if( x.ig1.material.opacity >= 0.2 ) {
+                    x.ig1.material.opacity -= 0.2;
+                    x.ig2.material.opacity += 0.2;
+                }
+            }
+        });
+        x.scale = 1;
+        x.test = function test() {
+            x.scale = (x.scale+1)%5;
+            x.ig1.material.opacity = x.scale/5.0;
+            x.ig2.material.opacity = 1 - x.ig1.material.opacity;
+        }
+    </script>
+</body>

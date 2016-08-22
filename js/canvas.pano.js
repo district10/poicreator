@@ -1,4 +1,13 @@
-function renderSite(canvas, site, poi) {	
+function imgglobe( path, radius ) {
+    var geometry = new THREE.SphereGeometry( radius, 60, 40 );
+    geometry.applyMatrix( new THREE.Matrix4().makeScale( -1, 1, 1 ) );
+    var texture = THREE.ImageUtils.loadTexture( path );
+    var material = new THREE.MeshBasicMaterial( { map: texture } );
+    var mesh = new THREE.Mesh( geometry, material );
+    return mesh;
+}
+
+function renderSite(canvas, site, poi) {
     // canvas: the output canvas DOM element
     // site  : the configuration site object
     // poi   : the poi output
@@ -13,9 +22,9 @@ function renderSite(canvas, site, poi) {
         { color: "#d1d2d4", mode: "MODE 7: .........", info: "#d1d2d4"}
     ];
     var mode = 0;
-    
+
     canvas.style.position = 'relative';
-    
+
     var banner = document.createElement('div');
     banner.style.cssText = "";
     banner.style.cssText += "";
@@ -29,9 +38,9 @@ function renderSite(canvas, site, poi) {
     banner.style.cursor = "pointer";
     banner.innerText = "MODE";
 //    $(banner).fitText(1.2, { minFontSize: '6px', maxFontSize: '20px' });
-    
+
     canvas.appendChild(banner);
-    
+
     var loc = document.createElement('div');
 //    loc.style.border = '1px solid red';
     loc.style.position = "absolute";
@@ -55,7 +64,7 @@ function renderSite(canvas, site, poi) {
 
     poi.ref = site.img;
     poi.value = Math.random();
-    
+
     var inScope = false,
         isUserInteracting = false,
         onMouseDownMouseX = 0, onMouseDownMouseY = 0,
@@ -90,7 +99,7 @@ function renderSite(canvas, site, poi) {
     var mesh = new THREE.Mesh( geometry, material );
     scene.add( mesh );
 
-    var spherefaces	= [];
+    var spherefaces = [];
     spherefaces.push(mesh);
     console.log('there are ' + spherefaces.length + ' faces');
 
@@ -111,19 +120,16 @@ function renderSite(canvas, site, poi) {
     var light = new THREE.AmbientLight( 0xffffff );
     scene.add( light );
 
-    var spritey = makeTextSprite( " Hello, ", 
+    var spritey = makeTextSprite( " Hello, ",
                                  { fontsize: 24, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:100, b:100, a:0.8} } );
     spritey.position.set( 400,0,0);
     scene.add( spritey );
 
-
-
-
     // listeners
     canvas.addEventListener('resize', function(){
         renderer.setSize( canvas.clientWidth, canvas.clientHeight );
-        camera.aspect	= canvas.clientWidth / canvas.clientHeight;
-        camera.updateProjectionMatrix();		
+        camera.aspect   = canvas.clientWidth / canvas.clientHeight;
+        camera.updateProjectionMatrix();
     }, false);
 
     canvas.addEventListener( 'mouseenter', function(event){
@@ -137,14 +143,14 @@ function renderSite(canvas, site, poi) {
     }, false );
 
     canvas.addEventListener( 'mousemove', function(event){
-        if (!inScope) { return; }                                                       //          ^  
-                                                                                        //          |  
-        mouse.x = ( event.clientX - canvas.offsetLeft ) / canvas.clientWidth * 2 - 1;   //  (-1, 1) | ( 1, 1) 
+        if (!inScope) { return; }                                                       //          ^
+                                                                                        //          |
+        mouse.x = ( event.clientX - canvas.offsetLeft ) / canvas.clientWidth * 2 - 1;   //  (-1, 1) | ( 1, 1)
         mouse.y = 1 - ( event.clientY - canvas.offsetTop ) / canvas.clientHeight * 2;   //  --------+---------->
-                                                                                        //  (-1,-1) | ( 1,-1) 
-                                                                                        //          |  
+                                                                                        //  (-1,-1) | ( 1,-1)
+                                                                                        //          |
         // update sprite position
-        
+
         if (onMode) {
             raycaster.setFromCamera( mouse, camera );
             intersects = raycaster.intersectObjects( objects );
@@ -176,7 +182,7 @@ function renderSite(canvas, site, poi) {
         if ( isUserInteracting === true ) {
             lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
             lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
-        }        
+        }
     }, false );
 
     canvas.addEventListener( 'mousedown', function(event){
@@ -189,7 +195,7 @@ function renderSite(canvas, site, poi) {
         onPointerDownPointerY = event.clientY;
         onPointerDownLon = lon;
         onPointerDownLat = lat;
-        
+
         if (onMode) {
         }
 
@@ -248,7 +254,7 @@ function renderSite(canvas, site, poi) {
         loc.innerHTML = lon.toFixed(0) + '<br />' + lat.toFixed(0);
     });
 
-    
+
     onRenderFcts.push(function(){
         var t = THREE.Math.degToRad( lon );
         var p = THREE.Math.degToRad( 90 - lat );
@@ -260,7 +266,7 @@ function renderSite(canvas, site, poi) {
 
     // render the scene
     onRenderFcts.push(function(){
-        renderer.render( scene, camera );		
+        renderer.render( scene, camera );
     });
 
     // run the rendering loop
@@ -269,14 +275,23 @@ function renderSite(canvas, site, poi) {
         // keep looping
         requestAnimationFrame( animate );
         // measure time
-        lastTimeMsec	= lastTimeMsec || nowMsec-1000/60;
-        var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec);
-        lastTimeMsec	= nowMsec;
+        lastTimeMsec    = lastTimeMsec || nowMsec-1000/60;
+        var deltaMsec   = Math.min(200, nowMsec - lastTimeMsec);
+        lastTimeMsec    = nowMsec;
         // call each update function
         onRenderFcts.forEach(function(onRenderFct){
             onRenderFct(deltaMsec/1000, nowMsec/1000);
         });
     });
+
+    var ig1 = imgglobe( site.img1, 300 );
+    var ig2 = imgglobe( site.img2, 300 );
+
+    return {
+        ig1: ig1,
+        ig2: ig2,
+        scene: scene
+    };
 }
 
 
@@ -319,9 +334,7 @@ function modeRotateUD (POI) {
     var axis = new THREE.Vector3(-z/r, 0, x/r); // new THREE.Vector3(-z, 0, x).normalize()
     var angle = Math.PI / 20;
     POI.position.applyAxisAngle( axis, angle );
-
 }
-
 
 function modeRotateFree (POI, lon, lat) {
 
@@ -357,7 +370,7 @@ function modeSprite (POI, infoContext, infoTexture) {
         infoContext.fillRect( 2,2, width+4,20+4 );
         infoContext.fillStyle = "rgba(0,0,0,1)"; // text color
         infoContext.fillText( message, 4,20 );
-        
+
         infoTexture.needsUpdate = true;
 
     } else {
@@ -380,7 +393,7 @@ function makeTextSprite( message, parameters )
     var textWidth = metrics.width;
 
     context.fillStyle   = "rgba(0, 0, 0, 1.0)";
-    context.strokeStyle = "rgba(0, 255, 0, 1.0)"; 
+    context.strokeStyle = "rgba(0, 255, 0, 1.0)";
     var borderThickness = 4;
     context.lineWidth = borderThickness;
     roundRect(context, borderThickness/2, borderThickness/2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
@@ -393,11 +406,11 @@ function makeTextSprite( message, parameters )
     var spriteMaterial = new THREE.SpriteMaterial( { map: texture, useScreenCoordinates: false } );
     var sprite = new THREE.Sprite( spriteMaterial );
     sprite.scale.set(100,50,1.0);
-    return sprite;	
+    return sprite;
 }
 
 
-function roundRect(ctx, x, y, w, h, r) 
+function roundRect(ctx, x, y, w, h, r)
 {
     ctx.beginPath();
     ctx.moveTo(x+r, y);
@@ -411,5 +424,5 @@ function roundRect(ctx, x, y, w, h, r)
     ctx.quadraticCurveTo(x, y, x+r, y);
     ctx.closePath();
     ctx.fill();
-	ctx.stroke();   
+    ctx.stroke();
 }
