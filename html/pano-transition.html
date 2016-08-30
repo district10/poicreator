@@ -16,15 +16,30 @@
     </style>
 </head>
 <body>
+    <input type="button" name="showig1" value="A" onclick="setInterval('stepOpacity(-5)', 100)" >
+    <input type="range"  id="opacity" min="0" max="100" value="0" oninput="updateOpacity(this.value)">
+    <input type="button" name="showig2" value="B" onclick="setInterval('stepOpacity(5)', 100)" >
     <div id="sites">
     </div>
     <script src='../js/bundle/three.min.js'></script>
     <script src='../js/bundle/jquery.min.js'></script>
     <script src='../js/bundle/tween.min.js'></script>
     <script src='../js/bundle/jquery.fittext.js'></script>
-    <script src='../js/canvas.pano.js'></script>
+    <script src='../js/canvas.transit.js'></script>
     <script src='../js/utils.js'></script>
     <script>
+        function updateOpacity( value ) {
+            x.ig1.material.opacity = value/100;
+            x.ig2.material.opacity = 1-value/100;
+        }
+        function stepOpacity( value ) {
+            var newopac =  x.ig1.material.opacity + value/100;
+            if( 0 <= newopac && newopac <= 1.0 ) {
+                x.ig1.material.opacity = newopac;
+                x.ig2.material.opacity = 1 - newopac;
+            }
+        }
+
         var siteinfo = function () {
             return {
                 img: "../img/01.jpg",
@@ -34,6 +49,7 @@
                 lat: Math.random()
             };
         }
+
         var pois = [];
         var poi = {};
         pois.push(poi);
@@ -45,7 +61,9 @@
 
         x.scene.add( x.ig1 );
         x.scene.add( x.ig2 );
-        x.ig1.material.opacity = x.ig2.material.opacity = 0.5;
+        x.ig1.material.transparent = x.ig2.material.transparent = true;
+        x.ig1.material.opacity = 0;
+        x.ig2.material.opacity = 1;
         $('body').keydown(function(e){
             var code = e.which;
             if( code== 38) {            // up
