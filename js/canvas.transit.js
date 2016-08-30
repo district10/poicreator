@@ -97,7 +97,7 @@ function renderSite(canvas, site, poi) {
     var texture = THREE.ImageUtils.loadTexture( site.img );
     var material = new THREE.MeshBasicMaterial( { map: texture } );
     var mesh = new THREE.Mesh( geometry, material );
-    scene.add( mesh );
+    // scene.add( mesh );
 
     var spherefaces = [];
     spherefaces.push(mesh);
