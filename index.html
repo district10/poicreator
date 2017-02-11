@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        #transition {
+        .classy {
             -webkit-box-shadow: 0 0 25px 10px rgba(155, 155, 155, 0.5);
             -moz-box-shadow:    0 0 25px 10px rgba(155, 155, 155, 0.5);
             -o-box-shadow:      0 0 25px 10px rgba(155, 155, 155, 0.5);
@@ -13,9 +13,12 @@
             border-radius: 1em;
         }
         h2 { margin-bottom: 2em; }
+        div.newdemo > p {
+            padding-bottom: 2em;
+        }
     </style>
 </head>
-<body>    
+<body>
     <h2 id="demos">Demos</h2>
 
     这是很久以前的 demo，只有这几个是不需要开 MongoDB 服务器就能看得：
@@ -28,5 +31,8 @@
     </ol>
     <hr>
     <h2>New Demo</h2>
-    <p><a id="transition" href="html/pano-transition.html">html/pano-pano-transition.html</a>：<----【场景过度】</p>
+    <div class="newdemo">
+        <p><a class="classy" href="html/pano-transition.html">html/pano-pano-transition.html</a>【场景过度】</p>
+        <p><a class="classy" href="mobile/index.html">mobile/index.html</a> 【移动端适配】</p>
+    </div>
 </body>
