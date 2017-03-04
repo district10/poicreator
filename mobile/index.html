@@ -1,331 +1,147 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-    <head>
-        <title>Panorama</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
-        <style>
-            body {
-                background-color: #000000;
-                margin: 0px;
-                padding: 0px;
-                overflow: hidden;
-            }
-
-            a {
-                color: #ffffff;
-            }
-
-            #log {
-                border: 1px solid white;
-                margin: 0px;
-                padding: 5px;
-                position: absolute;
-                bottom: 2px;
-                left: 2px;
-                color: white;
-                font-size: 60%;
-                max-width: 50%;
-                max-height: 60%;
-                background-color: rgba(0,0,0,0.4);
-                overflow-y: auto;
-            }
-
-            .button-group {
-                background-color: white;
-                border: 1px solid lightgray;
-                margin: 2px;
-                padding: 5px;
-            }
-
-            select#textures option {
-                min-width: 30%;
-                max-width: 80%;
-            }
-        </style>
-    </head>
-    <body>
-
-        <div id="container">
-
-            <div id="log">
-                <pre><code id="loginfo">panorama
-                </code></pre>
-                <input type="button" value="显示/隐藏 Debug 信息" onclick="toggleLog();" />
-            </div>
-
-            <div id="buttons">
-                <div class="button-group">
-                    <span>加载全景图</span>
-                    <select id="textures" name="textures" style="max-width: 50%;"></select>
-                    <input type="file" id="loadTexture" accept="image/*" />
-                </div>
-            </div>
-
-        </div>
-
-        <script src="jquery.min.js"></script>
-        <script src="three.min.js"></script>
-        <script>
-
-            var isMobile = navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|BB10|mobi|tablet|opera mini|nexus 7)/i);
-            var controls;
-            var textures = [
-                "texture.jpg",
-                "2048x1024_HDPano_00000001.jpg",
-                "512x256_HDPano_00000001.jpg",
-            ];
-            textures.forEach(function(t) {
-                $('select#textures').append(new Option(t, t, true, true));
-                console.log(t);
-            });
-
-            var camera, scene, renderer;
-            var panoramamaterial;
-
-            var isUserInteracting = false,
-            onMouseDownMouseX = 0, onMouseDownMouseY = 0,
-            lon = 0, onMouseDownLon = 0,
-            lat = 0, onMouseDownLat = 0,
-            phi = 0, theta = 0;
-            var needUpdateLonLat = false;
-
-            var log = document.getElementById( 'loginfo' );
-            var touchmoveX = 0, touchmoveY = 0, touchmoveId = 0;
-
-            init();
-            animate();
-
-            function init() {
-
-                var container, mesh;
-
-                container = document.getElementById( 'container' );
-
-                camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1100 );
-                camera.target = new THREE.Vector3( 0, 0, 0 );
-                if (isMobile) {
-                    controls = new THREE.DeviceOrientationControls( camera );
-                }
-
-                scene = new THREE.Scene();
-
-                var geometry = new THREE.SphereGeometry( 500, 60, 40 );
-                geometry.scale( - 1, 1, 1 );
-
-                var material = new THREE.MeshBasicMaterial( {
-                    map: new THREE.TextureLoader().load( textures[textures.length-1] )
-                } );
-
-                panoramamaterial = material;
-
-                mesh = new THREE.Mesh( geometry, material );
-
-                scene.add( mesh );
-
-                renderer = new THREE.WebGLRenderer();
-                renderer.setPixelRatio( window.devicePixelRatio );
-                renderer.setSize( window.innerWidth, window.innerHeight );
-                container.appendChild( renderer.domElement );
-
-                container.addEventListener( 'mousedown', onDocumentMouseDown, false );
-                container.addEventListener( 'mousemove', onDocumentMouseMove, false );
-                container.addEventListener( 'mouseup', onDocumentMouseUp, false );
-                container.addEventListener( 'wheel', onDocumentMouseWheel, false );
-
-                container.addEventListener('touchstart',function(e) { }, false);
-                container.addEventListener('touchend',function(e) { }, false);
-                container.addEventListener('touchmove',function(e) {
-                    // 在 iOS，safari 上测试可用
-                    log.innerText = JSON.stringify(e.touches[0], null, 4);
-                    if (e.touches[0] && touchmoveId ===  e.touches[0].identifier) {
-                        var dx = e.touches[0].clientX - touchmoveX;
-                        var dy = e.touches[0].clientY - touchmoveY;
-                        lon += -dx*0.1;
-                        lat +=  dy*0.1;
-                    } else {
-                        touchmoveId = e.touches[0].identifier;
-                    }
-                    touchmoveX = e.touches[0].clientX;
-                    touchmoveY = e.touches[0].clientY;
-
-                }, false);
-
-                document.addEventListener( 'dragover', function ( event ) {
-
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = 'copy';
-
-                }, false );
-
-                document.addEventListener( 'dragenter', function ( event ) {
-
-                    document.body.style.opacity = 0.5;
-
-                }, false );
-
-                document.addEventListener( 'dragleave', function ( event ) {
-
-                    document.body.style.opacity = 1;
-
-                }, false );
-
-                document.addEventListener( 'drop', function ( event ) {
-
-                    event.preventDefault();
-
-                    var reader = new FileReader();
-                    reader.addEventListener( 'load', function ( event ) {
-
-                        material.map.image.src = event.target.result;
-                        material.map.needsUpdate = true;
-
-                    }, false );
-                    reader.readAsDataURL( event.dataTransfer.files[ 0 ] );
-
-                    document.body.style.opacity = 1;
-
-                }, false );
-
-                window.addEventListener( 'resize', onWindowResize, false );
-
-            }
-
-            function onWindowResize() {
-
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-
-                renderer.setSize( window.innerWidth, window.innerHeight );
-
-            }
-
-            function onDocumentMouseDown( event ) {
-                if (!$(event.target).is('canvas')) {
-                    return;
-                }
-
-                event.preventDefault();
-
-                isUserInteracting = true;
-
-                onPointerDownPointerX = event.clientX;
-                onPointerDownPointerY = event.clientY;
-
-                onPointerDownLon = lon;
-                onPointerDownLat = lat;
-
-            }
-
-            function onDocumentMouseMove( event ) {
-
-                if ( isUserInteracting === true ) {
-
-                    lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
-                    lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
-                    needUpdateLonLat = true;
-                }
-
-            }
-
-            function onDocumentMouseUp( event ) {
-
-                isUserInteracting = false;
-
-            }
-
-            function onDocumentMouseWheel( event ) {
-
-                camera.fov += event.deltaY * 0.05;
-                camera.updateProjectionMatrix();
-
-            }
-
-            function animate() {
-
-                requestAnimationFrame( animate );
-                update();
-
-            }
-
-            function update() {
-
-                if (isMobile) { controls.update(); }
-                if ( isUserInteracting === false ) {
-                    // lon += 0.1;
-                }
-
-                if (lon > 180) {
-                    lon -= 360;
-                } else if (lon < -180) {
-                    lon += 360;
-                }
+<html lang="en">
+<head>
+    <title>three.js webgl - controls - deviceorientation</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1">
+    <style>
+        body {
+            margin: 0px;
+            overflow: hidden;
+        }
+        .main{
+            position: absolute;
+            left: 0px;
+            top: 0px;
+            width: 450px;
+            height: 450px;
+            margin: 0 auto;
+            overflow: hidden;
+            z-index: 1000;
+            opacity: 0.2;
+        }
+        .main:hover {
+            opacity: 1.0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main"><img class="absolute" src="qr.png" alt="" /></div>
+<div id="container"></div>
+
+<script src="jquery.min.js"></script>
+<script src="three.min.js"></script>
+<script src="DeviceOrientationControls.js"></script>
+
+<script>
+    "use strict";
+
+    var isDesktop = !navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry|BB10|mobi|tablet|opera mini|nexus 7)/i);
+    var textures = [
+        "texture.jpg",
+        "2048x1024_HDPano_00000001.jpg",
+        "512x256_HDPano_00000001.jpg",
+    ];
+    textures.forEach(function(t) {
+        $('select#textures').append(new Option(t, t, true, true));
+    });
+
+    var container, camera, scene, renderer, controls, geometry, mesh;
+    var isUserInteracting = false;
+    var lon = 0, lat = 0, phi = 0, theta = 0;
+    var onPointerDownPointerX = 0, onPointerDownPointerY = 0, onPointerDownLon = 0, onPointerDownLat = 0;
+
+    window.addEventListener('load', function() {
+
+        var animate = function(){
+
+            window.requestAnimationFrame( animate );
+
+            controls.update();
+
+            if (isDesktop) {
                 lat = Math.max( - 85, Math.min( 85, lat ) );
-                if (needUpdateLonLat) {
-                    log.innerHTML = JSON.stringify({"lon": lon, "lat": lat}, null, 4);
-                    needUpdateLonLat = false;
-                }
-
-
                 phi = THREE.Math.degToRad( 90 - lat );
                 theta = THREE.Math.degToRad( lon );
-
                 camera.target.x = 500 * Math.sin( phi ) * Math.cos( theta );
                 camera.target.y = 500 * Math.cos( phi );
                 camera.target.z = 500 * Math.sin( phi ) * Math.sin( theta );
-
                 camera.lookAt( camera.target );
-
-                /*
-                // distortion
-                camera.position.copy( camera.target ).negate();
-                */
-
-                renderer.render( scene, camera );
-
             }
 
-            function toggleLog() {
-                $("#loginfo").toggle();
+            renderer.render(scene, camera);
+
+        };
+
+        container = document.getElementById( 'container' );
+
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+        camera.target = new THREE.Vector3( 0, 0, 0 );
+
+        controls = new THREE.DeviceOrientationControls( camera );
+
+        scene = new THREE.Scene();
+
+        var geometry = new THREE.SphereGeometry( 500, 16, 8 );
+        geometry.scale( - 1, 1, 1 );
+
+        var material = new THREE.MeshBasicMaterial( {
+            map: new THREE.TextureLoader().load( 'texture.jpg' )
+        } );
+
+        var mesh = new THREE.Mesh( geometry, material );
+        scene.add( mesh );
+
+        var geometry = new THREE.BoxGeometry( 100, 100, 100, 4, 4, 4 );
+        var material = new THREE.MeshBasicMaterial( { color: 0xff00ff, side: THREE.BackSide, wireframe: true } );
+        var mesh = new THREE.Mesh( geometry, material );
+        scene.add( mesh );
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.domElement.style.position = 'absolute';
+        renderer.domElement.style.top = 0;
+        container.appendChild(renderer.domElement);
+
+        window.addEventListener('resize', function() {
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+
+        }, false);
+
+        animate();
+
+        container.addEventListener( 'mousedown', function(event) {
+            event.preventDefault();
+            isUserInteracting = true;
+            onPointerDownPointerX = event.clientX;
+            onPointerDownPointerY = event.clientY;
+            onPointerDownLon = lon;
+            onPointerDownLat = lat;
+        }, false );
+        container.addEventListener( 'mousemove', function(event) {
+            if ( isUserInteracting === true ) {
+                lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
+                lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
             }
+        }, false );
+        container.addEventListener( 'mouseup', function(event) {
+            isUserInteracting = false;
+        }, false );
+        container.addEventListener( 'wheel', function(event) {
+            camera.fov += event.deltaY * 0.05;
+            camera.updateProjectionMatrix();
+        }, false );
 
-            $('#loadTexture').on("change",function(e){
-                var f = e.target.files[0];
-                if (f) {
-                    var r = new FileReader();
-                    r.onload = function(event){
-                        var url = event.target.result;
-                        var img = new Image();
-                        img.src = url;
-                        img.onload = function() {
-                            if (this.width != 0 && this.width === this.height * 2) {
-                                panoramamaterial.map.image.src = url;
-                                panoramamaterial.map.needsUpdate = true;
-                                log.innerHTML = "Tip: 也可以拖拽图片以加载";
-                            } else {
-                                log.innerHTML = "图片尺寸必须满足：宽:高 = 2:1\n";
-                                log.innerHTML += "当前尺寸：" + img.width + "x" + img.height;
-                            }
-                            return true;
-                        };
-                        img.onerror = function() {
-                            log.innerHTML = "只能加载图片";
-                            return true;
-                        }
-                    };
-                    r.readAsDataURL(f);
-                } else {
-                    log.innerHTML = "没有选中全景图";
-                }
-            });
+    }, false);
 
-            $('#textures').on("change",function(e) {
-                var url = this.value;
-                panoramamaterial.map.image.src = url;
-                panoramamaterial.map.needsUpdate = true;
-            });
 
-        </script>
-    </body>
+
+</script>
+
+</body>
 </html>
